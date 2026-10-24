@@ -20,3 +20,6 @@ export function buildAlertBody(ward: number): string {
 export function taskTitleForWard(ward: number): string {
   return `Visit Ward ${ward} houses`;
 }
+
+/** Upper bound for an edited alert body (characters). */
+export const MAX_ALERT_BODY = 4000;
