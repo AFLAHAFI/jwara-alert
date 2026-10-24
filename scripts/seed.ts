@@ -4,6 +4,8 @@
  *
  *   node --env-file=.env.local --import tsx scripts/seed.ts
  *   node --env-file=.env.local --import tsx scripts/seed.ts --reset   # wipe reports/alerts/tasks first
+ *
+ * Refuses to run when reports already exist (seeding twice would make extra wards RED).
  */
 import { createClient } from "@supabase/supabase-js";
 
@@ -56,6 +58,17 @@ async function main() {
       if (error) throw error;
       console.log(`cleared ${table}`);
     }
+  }
+
+  const { count, error: countErr } = await db
+    .from("reports")
+    .select("id", { count: "exact", head: true });
+  if (countErr) throw countErr;
+  if (count && count > 0) {
+    console.error(
+      `reports already has ${count} rows. Seeding again would double the counts; run with --reset to wipe and reseed.`,
+    );
+    process.exit(1);
   }
 
   const rows = Object.entries(plan).flatMap(([ward, ts]) =>

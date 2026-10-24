@@ -43,7 +43,7 @@ None of these are prefixed `NEXT_PUBLIC_`, so nothing reaches the browser.
 ### Example data
 
 ```bash
-npm run seed          # adds fake reports: Ward 3 = 6, Ward 7 = 5 (RED), others 0-3
+npm run seed          # empty DB only: fake reports, Ward 3 = 6, Ward 7 = 5 (RED), others 0-3
 npm run seed:reset    # wipes reports/alerts/tasks first, then seeds
 ```
 

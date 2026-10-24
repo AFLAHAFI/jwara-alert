@@ -11,7 +11,7 @@ type Dashboard = {
   since: string;
   wards: WardCount[];
   redWards: number[];
-  recentAlerts: { id: string; ward: number; status: "draft" | "published" }[];
+  openDrafts: { id: string; ward: number; status: "draft" }[];
 };
 
 function DashboardInner() {
@@ -62,7 +62,7 @@ function DashboardInner() {
   }
 
   const draftFor = (ward: number) =>
-    data?.recentAlerts.find((a) => a.ward === ward && a.status === "draft");
+    data?.openDrafts.find((a) => a.ward === ward);
 
   return (
     <div className="space-y-5">
