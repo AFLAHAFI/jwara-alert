@@ -4,7 +4,7 @@ import TaskBadge from "@/components/TaskBadge";
 import TaskDoneButton from "@/components/TaskDoneButton";
 import { guardPage } from "@/lib/pageAuth";
 import { getPanchayat, getTasks, type TaskRow } from "@/lib/area";
-import { fmt, pickName } from "@/lib/i18n";
+import { fmt, pickName, wardLabel } from "@/lib/i18n";
 import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +59,7 @@ export default async function AshaHome() {
         <article key={x.id} className="card space-y-3 border-l-4 border-l-primary">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="text-xl font-bold">{fmt(t.wardN, { n: x.ward_number ?? "" })}</p>
+              <p className="text-xl font-bold">{wardLabel(t, x.ward_number, x.ward_name)}</p>
               {x.disease && <p className="text-slate-600">{pickName(x.disease, lang)}</p>}
             </div>
             <TaskBadge task={x} t={t} lang={lang} />
@@ -77,7 +77,7 @@ export default async function AshaHome() {
             <article key={x.id} className="card space-y-2 p-4 opacity-80">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold">
-                  {fmt(t.wardN, { n: x.ward_number ?? "" })}
+                  {wardLabel(t, x.ward_number, x.ward_name)}
                   {x.disease ? ` · ${pickName(x.disease, lang)}` : ""}
                 </p>
                 <TaskBadge task={x} t={t} lang={lang} />

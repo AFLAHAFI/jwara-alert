@@ -24,6 +24,12 @@ export function fmt(s: string, vars: Record<string, string | number> = {}): stri
   return s.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m));
 }
 
+/** "Ward 3 · Parakkode" (ward place names are proper nouns, kept as written). */
+export function wardLabel(t: Dict, n: number | string | null | undefined, name?: string | null): string {
+  const base = fmt(t.wardN, { n: n ?? "" });
+  return name ? `${base} · ${name}` : base;
+}
+
 type Named = { name_en: string; name_ml: string; name_hi?: string | null };
 
 /** Place or illness name in the chosen language, falling back to Malayalam, then English. */

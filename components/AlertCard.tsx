@@ -1,4 +1,6 @@
 import Icon from "@/components/Icon";
+import ShareWhatsApp from "@/components/ShareWhatsApp";
+import { SITE_URL } from "@/lib/site";
 import type { AreaAlert } from "@/lib/area";
 import { fmt, formatDateTime, pickBody, pickName, type Dict, type Lang } from "@/lib/i18n";
 
@@ -15,6 +17,7 @@ export default function AlertCard({
   lang,
   compact = false,
   now,
+  share = true,
 }: {
   alert: AreaAlert;
   t: Dict;
@@ -22,6 +25,8 @@ export default function AlertCard({
   compact?: boolean;
   /** Request time (ms), passed in so rendering stays pure. */
   now: number;
+  /** Show the WhatsApp share button (published alerts). */
+  share?: boolean;
 }) {
   const when = alert.published_at ?? alert.created_at;
   const isNew = now - new Date(when).getTime() < DAY;
@@ -49,6 +54,7 @@ export default function AlertCard({
         {body.text}
       </p>
       {body.fallback && <p className="text-xs text-slate-500">{t.only_ml_note}</p>}
+      {share && alert.status === "published" && <ShareWhatsApp text={body.text} url={SITE_URL} t={t} />}
     </article>
   );
 }

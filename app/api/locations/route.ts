@@ -12,7 +12,7 @@ export async function GET() {
     const [d, p, w] = await Promise.all([
       db.from("districts").select("id, name_en, name_ml, name_hi").order("name_en"),
       db.from("panchayats").select("id, district_id, name_en, name_ml, name_hi").order("name_en"),
-      db.from("wards").select("id, panchayat_id, number").order("number"),
+      db.from("wards").select("id, panchayat_id, number, name").order("number"),
     ]);
     if (d.error) throw d.error;
     if (p.error) throw p.error;

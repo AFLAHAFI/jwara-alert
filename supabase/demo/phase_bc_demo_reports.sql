@@ -1,4 +1,4 @@
--- FAKE example reports for the officer demo (Ernakulam -> first "Example Panchayat").
+-- FAKE example reports for the officer demo (Ernakulam -> Kunnathunad, the first panchayat by id).
 -- Ward 3: 6 dengue (RED), Ward 5: 5 leptospirosis (RED), others below the line.
 -- Runs only once: does nothing if that panchayat already has reports.
 with p as (

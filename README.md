@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://jwara-alert.vercel.app"><b>Live demo: jwara-alert.vercel.app</b></a><br />
+  <a href="https://jwara-alert.vercel.app"><b>Live app: https://jwara-alert.vercel.app</b></a><br />
   <img alt="Next.js 14" src="https://img.shields.io/badge/Next.js-14-black" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178C6" />
   <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-3ECF8E" />
@@ -24,8 +24,9 @@
   <img src="docs/screenshots/home-ml.jpg" width="200" alt="Home page in Malayalam" />
   <img src="docs/screenshots/resident-home-ml.jpg" width="200" alt="Resident home in Malayalam" />
   <img src="docs/screenshots/officer-red-wards-en.jpg" width="200" alt="Officer dashboard with red wards, in English" />
+  <img src="docs/screenshots/officer-heatmap-hi.jpg" width="200" alt="Ward heat map, in Hindi" />
   <img src="docs/screenshots/officer-alert-hi.jpg" width="200" alt="Creating an alert, in Hindi" />
-  <br /><sub>Home (മലയാളം) · Resident home (മലയാളം) · Officer red wards (English) · New alert (हिन्दी)</sub>
+  <br /><sub>Home (മലയാളം) · Resident home (മലയാളം) · Officer red wards (English) · Ward heat map (हिन्दी) · New alert (हिन्दी)</sub>
 </p>
 
 ---
@@ -56,11 +57,13 @@ flowchart LR
 
 | Role | What they can do |
 | --- | --- |
-| **Resident** | Sign up with district → panchayat → ward. Report one of 15 illnesses (one report per 10 minutes). See alerts only for their own area, the latest alert on their home screen, and anonymous counts for their ward and panchayat. |
-| **Health officer** (per panchayat) | Self-register, then wait for state approval. Dashboard with illness filter, per-ward chart and red wards, each showing whether an alert was already sent. Create alerts for the whole panchayat or selected wards in up to 3 languages, from fixed templates with illness-specific advice. Draft, edit, publish (with confirmation) or discard. Create and switch off ASHA accounts. Assign visits with due dates and track open, overdue and done. |
+| **Resident** | Sign up with district → panchayat → named ward (e.g. *Ward 3 · Parakkode*). Report one of 15 illnesses: **one report per 10 minutes per phone and per account**. See alerts only for their own area, the latest alert on their home screen, and anonymous counts for their ward and panchayat. Share an alert on **WhatsApp**. |
+| **Health officer** (per panchayat) | Self-register, then wait for state approval. Dashboard with red wards (each showing whether an alert was already sent), a **ward heat map** (green / amber / red; tap a ward for its illnesses) with an illness filter, and a **7-day trend** per illness marked rising or falling. Create alerts for the whole panchayat or selected wards in up to 3 languages, from fixed templates with illness-specific advice. Draft, edit, publish (with confirmation) or discard. Create and switch off ASHA accounts. Assign visits with due dates and track open, overdue and done. |
 | **ASHA worker** | See their own visit list (ward, illness, due date) and tap **"Mark visit done"**. |
-| **State admin** (Kerala Health Dept) | Kerala totals, a district table, district drill-down with "no officer" flags, red wards across the state (alerts not yet sent shown first), officer approval, and switching officers off. |
+| **State admin** (Kerala Health Dept) | Kerala totals, a **Kerala district map** (tap a district), a district table, district drill-down with "no officer" flags, red wards across the state (alerts not yet sent shown first), officer approval, and switching officers off. |
 | **Visitor** | Quick report by ward (original demo), public alerts, 108 / 112 emergency buttons. |
+
+**Places:** all 14 districts, with 2 real grama panchayats in each (28 in total, for example Kunnathunad and Udayamperoor in Ernakulam). They have their real ward counts (493 wards) and ward names for wards 1–10, taken from the LSGD directory list. Kunnathunad is the demo panchayat.
 
 **For everyone:** a language switch (**മലയാളം · English · हिन्दी**) on every page. The choice is
 remembered on the device and on the account. The app is phone-first with a bottom tab bar,
@@ -73,19 +76,19 @@ Created by `npm run seed:accounts`; every password is the `DEMO_PASSWORD` you se
 | Username | Role | Where |
 | --- | --- | --- |
 | `admin_kerala` | State admin | Kerala |
-| `officer_demo` | Health officer (approved) | Ernakulam → Example Panchayat 1 |
-| `officer_pending` | Health officer (waiting for approval) | Ernakulam → Example Panchayat 1 |
-| `asha_1`, `asha_2` | ASHA workers | Ernakulam → Example Panchayat 1 |
-| `citizen_1`, `citizen_2` | Residents | Ward 1 and Ward 2 of that panchayat |
+| `officer_demo` | Health officer (approved) | Ernakulam → Kunnathunad |
+| `officer_pending` | Health officer (waiting for approval) | Ernakulam → Kunnathunad |
+| `asha_1`, `asha_2` | ASHA workers | Ernakulam → Kunnathunad |
+| `citizen_1`, `citizen_2` | Residents | Ward 1 (Chittanadu) and Ward 2 (Erumeli), Kunnathunad |
 
 ### 2-minute demo script
 
-1. **`officer_demo`** opens the Dashboard. Ward 3 (dengue, 6) and Ward 5 (rat fever, 5) are red and marked "No alert yet".
+1. **`officer_demo`** opens the Dashboard. Ward 3 · Parakkode (dengue, 6) and Ward 5 · Kaithakkadu South (rat fever, 5) are red and marked "No alert yet". The heat map shows them in red; tap Ward 3 to see its illnesses. The 7-day trend shows dengue **rising**.
 2. Tap **Create alert** on Ward 3. The illness and ward are pre-filled with ready text in three languages. Tick Ward 1 as well, then **Save draft**, then **Approve and publish**.
 3. Under the published alert, **Assign ASHA visit** to Ward 3 for `asha_1`, due in 2 days.
-4. **`citizen_1`** (Ward 1) sees the alert. **`citizen_2`** (Ward 2) sees "No alerts in your area". Switch the language to show English and Hindi.
+4. **`citizen_1`** (Ward 1) sees the alert and can **share it on WhatsApp**. **`citizen_2`** (Ward 2) sees "No alerts in your area". Switch the language to show English and Hindi.
 5. **`asha_1`** taps **Mark visit done**. The officer's Tasks page now shows it as done.
-6. **`admin_kerala`** sees the Kerala overview, with Ernakulam on top and Ward 3 now "Alert sent".
+6. **`admin_kerala`** sees the Kerala map with Ernakulam (EKM) in red. Tap it to open the district, where Ward 3 now shows "Alert sent".
 
 ## Tech
 
@@ -109,7 +112,8 @@ npm run dev                     # http://localhost:3000
 2. `supabase/migrations/001_phase_a.sql`: districts, panchayats, wards, illnesses, accounts
 3. `supabase/migrations/002_phase_bc.sql`: targeted alerts, ASHA tasks, switch-off flag
 4. `supabase/migrations/003_i18n_admin.sql`: Hindi names, alert languages, saved language per account
-5. Optional fake data: `supabase/demo/phase_bc_demo_reports.sql`, `npm run seed`, `npm run seed:accounts`
+5. `supabase/migrations/004_real_places.sql`: real panchayat names (renamed in place), ward counts and names, per-account report limit
+6. Optional fake data: `supabase/demo/phase_bc_demo_reports.sql`, `npm run seed`, `npm run seed:accounts`
 
 ### Environment variables (all server-only; none start with `NEXT_PUBLIC_`)
 
@@ -136,7 +140,7 @@ npm run typecheck && npm run lint && npm run check:i18n
 
 ## Security and privacy
 
-- Reports store **ward, illness and time only**: no user id, name or phone number.
+- Reports store **ward, illness and time only**: no user id, name or phone number. The per-account limit keeps only the time of the account's last report, and that time is claimed with one conditional update, so two quick taps cannot both count.
 - Every officer and ASHA action is checked **on the server** for role, approval and **own panchayat**. Wards, ASHAs or alerts from another panchayat are rejected.
 - Publishing is guarded so a double tap cannot publish twice. Visits can only be assigned for published alerts.
 - Disabled accounts are treated as logged out. Login and sign-up are rate-limited. Login errors do not reveal whether a username exists.
@@ -144,9 +148,10 @@ npm run typecheck && npm run lint && npm run check:i18n
 
 ## Limits and future work
 
-- Panchayat names are placeholders ("Example Panchayat 1/2"), to be replaced with real LSGD data.
-- No SMS or WhatsApp delivery yet; residents see alerts when they open the app.
-- Anyone can sign up as a resident. The per-phone cooldown slows spam, and a per-account limit is planned.
+- Only 2 panchayats per district are loaded (Kerala has about 941). Wards 11 and above have numbers but no names yet.
+- No automatic SMS or WhatsApp sending. Officers and residents share alerts with the WhatsApp button; otherwise residents see alerts when they open the app.
+- Anyone can sign up as a resident. Limits per phone and per account slow spam but cannot stop many fake accounts.
+- The Kerala map is a schematic tile map, not a geographic boundary map.
 - Rate limits are in memory per server instance.
 
 ## How AI tools were used

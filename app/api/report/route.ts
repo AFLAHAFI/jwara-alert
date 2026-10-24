@@ -66,11 +66,45 @@ export async function POST(req: Request) {
     );
   }
 
+  // Per-account limit for logged-in residents: survives logout, cleared cookies and a new phone.
+  // Claimed with one conditional UPDATE, so two quick taps cannot both pass. The report row
+  // itself still stores no user id; only the time of the account's last report is kept.
+  let claimedFrom: string | null | undefined;
+  if (citizen) {
+    const db = supabaseAdmin();
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - REPORT_COOLDOWN_MS).toISOString();
+    try {
+      const { data: prev, error: pErr } = await db.from("profiles").select("last_report_at").eq("id", user.id).single();
+      if (pErr) throw pErr;
+      const { data: claimed, error: cErr } = await db
+        .from("profiles")
+        .update({ last_report_at: now.toISOString() })
+        .eq("id", user.id)
+        .or(`last_report_at.is.null,last_report_at.lt."${cutoff}"`)
+        .select("id");
+      if (cErr) throw cErr;
+      if (!claimed?.length) {
+        const lastMs = prev?.last_report_at ? new Date(prev.last_report_at).getTime() : now.getTime();
+        const retryAfterMs = Math.max(60_000, Math.min(REPORT_COOLDOWN_MS, lastMs + REPORT_COOLDOWN_MS - now.getTime()));
+        return NextResponse.json({ error: getT().t.err_already_reported, retryAfterMs }, { status: 429 });
+      }
+      claimedFrom = prev?.last_report_at ?? null;
+    } catch (err) {
+      console.error("[api/report] account limit failed", err);
+      return apiError("report_fail", 500);
+    }
+  }
+
   try {
     const { error } = await supabaseAdmin().from("reports").insert(row);
     if (error) throw error;
   } catch (err) {
     console.error("[api/report] insert failed", err);
+    // Give the account its report back if the insert did not happen.
+    if (citizen && claimedFrom !== undefined) {
+      await supabaseAdmin().from("profiles").update({ last_report_at: claimedFrom }).eq("id", user.id);
+    }
     return apiError("report_fail", 500);
   }
 

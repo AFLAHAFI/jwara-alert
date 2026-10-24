@@ -1,0 +1,33 @@
+# Source: user-supplied list (LSGD directory extract). Ward names only for wards 1-10.
+# (district, slot, name_en, name_ml, name_hi, lgd_ref, total_wards, [ward names 1..10])
+P = [
+ ("Thiruvananthapuram",1,"Pulimath","പുളിമാത്ത്","पुलिमाथ","239",19,["Sheemavila","Pullayil","Pulimath","Porunthamon","Manjappara","Kudappara","Kattumpuram","Arivarikuzhi","Kolluvila","Payattingakuzhi"]),
+ ("Thiruvananthapuram",2,"Kizhuvilam","കിഴുവിലം","किझुविलम","244",20,["Puravoor","Pavoorkonam","Kattumpuram","Velloorkonam","Puliyoorkonam","Mamamnada","Arikathwar","Kurakkada","Nainamkonam","Mudapuram"]),
+ ("Kollam",1,"Panayam","പനയം","पनयम","348",16,["Perumon West","Perumon East","P.H.C","Railwaystation","Chemmakkadu","Charukadu","Chathinamkulam","Gurukulam","Pampalil","Kandachira"]),
+ ("Kollam",2,"Poothakulam","പൂതക്കുളം","पूतक्कुलम","360",18,["Kottuvankonam","Mukkada","Koonamkulam","Puthankulam","Oonninmoodu","Ezhamvila","Poothakulam","H.S.Ward","Punnekkulam","Edayadi"]),
+ ("Pathanamthitta",1,"Koipuram","കോയിപ്രം","कोयिप्रम","386",17,["Kumbanadu Vadakku","Iyrakkavu","Kanjirappara","Kuravankuzhy","Pullad Kizhakku","Pullad Vadakku","Pullad","Varayannoor","Poovathoor","Kadapra"]),
+ ("Pathanamthitta",2,"Kaviyoor","കവിയൂർ","कवियूर","373",14,["Aikkuzhi","Mundiyappally","Punnilam","Nazhippara","Kottoor","Mathimala","Kaviyoor","Njalbhagom","Thottabhagom","Manackachira"]),
+ ("Alappuzha",1,"Ala","ആല","आला","467",13,["Ala","Ummath","Poomala","Malamodi","Kinaruvila","Valappuzha","Thevaracode","Kodukulanji","Chammath","Pennukkara"]),
+ ("Alappuzha",2,"Neelamperoor","നീലംപേരൂർ","नीलमपेरूर","460",13,["Pullayam","Neelamperoor North","Neelamperoor South","Eara North","Chakkachampakka","Eara South","Payattupakka","Valady","Narakathara","East Chennamkaru"]),
+ ("Kottayam",1,"Athirampuzha","അതിരമ്പുഴ","अतिरमपुझा","514",22,["Vedagiri","Kottakkupuram","ITI","Kattathi","Railway Station","Manakkapadam","Thrukkel","Central","Town","University"]),
+ ("Kottayam",2,"Arpookara","ആർപ്പൂക്കര","आर्पूक्करा","515",16,["Manchadikkari","Maniyaparambu","Choorakkavu","Pinanchirakuzhy","Villoonni","Thonnamkuzhy","Nerekadavu","Varyamuttom Charamkulam","Medical College","Angadi"]),
+ ("Idukki",1,"Adimaly","അടിമാലി","अडिमाली","573",21,["Pazhampillichal","Parisakallu","Irumpupalam","Plakkayam","14th Mile","Machiplavu","Chattupara","Adimali North","Thalamali","Karimkulam"]),
+ ("Idukki",2,"Idukki Kanjikuzhy","ഇടുക്കി കഞ്ഞിക്കുഴി","इडुक्की कंजिकुझी","599",18,["Thattekkanni","Keerithode","Anchukudy","Chelachuvadu","Kathippara","Attikkalam","Churuli","Alppara","Mazhuvady","Thallakkanam"]),
+ ("Ernakulam",1,"Kunnathunad","കുന്നത്തുനാട്","कुन्नत्तुनाड","680",18,["Chittanadu","Erumeli","Parakkode","Punnorkode","Kaithakkadu South","Kaithakkadu North","Pattimattom","Chengara North","Chengara South","Parakkode East"]),
+ ("Ernakulam",2,"Udayamperoor","ഉദയംപേരൂർ","उदयमपेरूर","669",20,["Malekadu","Perumthrikkovil","Udayamperoor","Kandanad","Valiyakulam East","Nadakavu","Kochupally","Poothotta","Puthankavu","Punnackaveli"]),
+ ("Thrissur",1,"Puthur","പുത്തൂർ","पुत्तूर","744",23,["Kainoor","Thonippara","Cherukunnu","Ezhamkallu","Mannamangalam","Vellakkarithadam","Maruthukuzhy","Marottichal","Kallaikunnu","Chembamkandam"]),
+ ("Thrissur",2,"Mullassery","മുല്ലശ്ശേരി","मुल्लस्सेरी","752",15,["Thirunellur","Peruvallur","Ambedkargramam","Penakam","Annakara","Elavathur","Pathiyarkulangara","Thanaveethy","Manina","Parambanthaly"]),
+ ("Palakkad",1,"Kulukkallur","കുലുക്കല്ലൂർ","कुलुक्कल्लूर","812",17,["Chundampatta","Natyamangalam North","Natyamangalam","Chundampatta East","Thathnampully","Thathnampully South","Mappatukara West","Mappatukara East","Puramathra","Puramathra South"]),
+ ("Palakkad",2,"Puducode","പുതുക്കോട്","पुदुकोड","881",15,["Thiruvadi","Kanakkannur","Pattola","Chandhappura","Manappadam","Theruvu","Thachanadi","Anjumuri","Gramam","Appakkad"]),
+ ("Malappuram",1,"Elamkulam","ഏലംകുളം","एलमकुलम","937",16,["Cherukara","Alumkoottam","Kizhungathole","Parakkalmukku","Chenganampatta","Etheparambu","Chenamparambu","Muthukurussi","Kunnakkavu","Mallisseri"]),
+ ("Malappuram",2,"Oorakam","ഊരകം","ऊरकम","932",17,["Nedumparamb","Kuttaloor","O.K.M. Nagar","Karimbili","Kodalikkund","Yarampadi","Pullanchal","Oorakam Mala","Puthan Peedika","Karathod"]),
+ ("Kozhikode",1,"Kakkodi","കക്കോടി","कक्कोडी","1040",21,["Cherukulam","Badiroor","Kottupadam","Thekkannithazham","Chelapram","Kottakkal Thazham","Koodathumpoyil","Perinjilamala","Kannadichalil","Padinhattummuri"]),
+ ("Kozhikode",2,"Kuruvattoor","കുരുവട്ടൂർ","कुरुवट्टूर","1056",18,["Kuruvattoor North","Pullaloor","Kuruvattoor","Kuruvattoor East","Payambra North","Payimbra","Payimbra East","Konott","Poloor East","Poloor"]),
+ ("Wayanad",1,"Ambalavayal","അമ്പലവയൽ","अंबलवयल","1080",20,["Karachal","Kumbaleri","Ayiramkolly","Kuppamudi","Ambalavayal East","Ambalavayal West","Neerchal","Andoor","Pambala","Kottoor"]),
+ ("Wayanad",2,"Muttil","മുട്ടിൽ","मुट्टिल","1089",19,["Madakkimala","Kumbalad","Pariyaram","Kolavayal","Panamkandy","Kariyambadi","Variyad","Theneri","Vazhavatta","Pakkam"]),
+ ("Kannur",1,"Kottayam-Malabar","കോട്ടയം-മലബാർ","कोट्टयम-मलबार","1148",14,["Mouverry","Kinavakkal","Purakkalam","Kottayam Angadi","Thallod","Kottayampoil","Kanathum Chira","Kunninu Meethal","Aarammile","Eruvatty"]),
+ ("Kannur",2,"Alakode","ആലക്കോട്","आलक्कोड","1120",21,["Chittadi","Therthalli","Rayarome","Moonnamkunnu","Parappa","Kuttaparamba","Alakode","Ottathai","Kappimala","Nellikunnu"]),
+ ("Kasaragod",1,"West Eleri","വെസ്റ്റ് എളേരി","वेस्ट एलेरी","",18,["Parappachal","Bheemanady","Chennadukkam","Eleri","Punnakunnu","Plachikkara","Nattakkal","Karuvankayam","Paramba","Chattamala"]),
+ ("Kasaragod",2,"Puthige","പുത്തിഗെ","पुत्तिगे","1181",14,["Chennikodi","Dharmathadka","Deradka","Badoor","Mugu","Urmi","Ujampdavu","Seethangoli","Kannur",None]),
+]
+assert len(P)==28

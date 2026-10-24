@@ -11,7 +11,7 @@ export type Disease = {
   name_hi: string | null;
   citizen_selectable: boolean;
 };
-export type WardRow = { id: number; number: number };
+export type WardRow = { id: number; number: number; name: string | null };
 export type PanchayatInfo = {
   id: number;
   name_en: string;
@@ -58,17 +58,17 @@ export async function getPanchayat(id: number): Promise<PanchayatInfo | null> {
 export async function getWards(panchayatId: number): Promise<WardRow[]> {
   const { data, error } = await supabaseAdmin()
     .from("wards")
-    .select("id, number")
+    .select("id, number, name")
     .eq("panchayat_id", panchayatId)
     .order("number");
   if (error) throw error;
   return data ?? [];
 }
 
-export async function getWardNumber(wardId: number | null): Promise<number | null> {
+export async function getWardInfo(wardId: number | null): Promise<{ number: number; name: string | null } | null> {
   if (!wardId) return null;
-  const { data } = await supabaseAdmin().from("wards").select("number").eq("id", wardId).maybeSingle();
-  return data?.number ?? null;
+  const { data } = await supabaseAdmin().from("wards").select("number, name").eq("id", wardId).maybeSingle();
+  return data ?? null;
 }
 
 const PAGE = 1000;
@@ -189,12 +189,13 @@ export type TaskRow = {
   due_date: string | null;
   created_at: string;
   ward_number: number | null;
+  ward_name: string | null;
   asha_name: string | null;
   disease: { name_en: string; name_ml: string; name_hi: string | null } | null;
 };
 
 const TASK_SELECT =
-  "id, alert_id, assigned_to, title, done, done_at, due_date, created_at, wards(number), profiles!tasks_assigned_to_fkey(display_name), alerts(diseases(name_en, name_ml, name_hi))";
+  "id, alert_id, assigned_to, title, done, done_at, due_date, created_at, wards(number, name), profiles!tasks_assigned_to_fkey(display_name), alerts(diseases(name_en, name_ml, name_hi))";
 
 type RawTask = {
   id: string;
@@ -223,6 +224,7 @@ function shapeTask(t: RawTask): TaskRow {
     due_date: t.due_date,
     created_at: t.created_at,
     ward_number: one(t.wards as { number: number } | null)?.number ?? null,
+    ward_name: one(t.wards as { name: string | null } | null)?.name ?? null,
     asha_name: one(t.profiles as { display_name: string } | null)?.display_name ?? null,
     disease,
   };
@@ -259,4 +261,61 @@ export function alertStatusFor(alerts: AreaAlert[], wardId: number, diseaseId: n
     draft = true;
   }
   return draft ? "draft" : "none";
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const IST_MS = 5.5 * 60 * 60 * 1000;
+
+/** YYYY-MM-DD of an instant in Asia/Kolkata. */
+export function kolkataDay(d: Date | string): string {
+  const ms = (typeof d === "string" ? new Date(d) : d).getTime() + IST_MS;
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
+export type TrendSeries = { disease: Disease; counts: number[]; last3: number; prev3: number };
+export type Trend = { days: string[]; series: TrendSeries[] };
+
+/** Reports per Kolkata day for the last 7 days (today included), top illnesses only. */
+export async function getTrend(panchayatId: number, diseases: Disease[], top = 3): Promise<Trend> {
+  const today = kolkataDay(new Date());
+  const days: string[] = [];
+  for (let i = 6; i >= 0; i--) days.push(kolkataDay(new Date(Date.parse(`${today}T00:00:00Z`) - i * DAY_MS + 1)));
+  const since = new Date(Date.parse(`${days[0]}T00:00:00Z`) - IST_MS).toISOString();
+
+  const rows: { disease_id: number | null; created_at: string }[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabaseAdmin()
+      .from("reports")
+      .select("disease_id, created_at")
+      .eq("panchayat_id", panchayatId)
+      .gte("created_at", since)
+      .order("created_at", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE) break;
+  }
+
+  const idx = new Map(days.map((d, i) => [d, i]));
+  const per = new Map<number, number[]>();
+  for (const r of rows) {
+    if (!r.disease_id) continue;
+    const i = idx.get(kolkataDay(r.created_at));
+    if (i === undefined) continue;
+    const arr = per.get(r.disease_id) ?? Array(7).fill(0);
+    arr[i] += 1;
+    per.set(r.disease_id, arr);
+  }
+  const byId = new Map(diseases.map((d) => [d.id, d]));
+  const series = Array.from(per.entries())
+    .filter(([id]) => byId.has(id))
+    .map(([id, counts]) => ({
+      disease: byId.get(id)!,
+      counts,
+      last3: counts.slice(4).reduce((a, b) => a + b, 0),
+      prev3: counts.slice(1, 4).reduce((a, b) => a + b, 0),
+    }))
+    .sort((a, b) => b.counts.reduce((x, y) => x + y, 0) - a.counts.reduce((x, y) => x + y, 0))
+    .slice(0, top);
+  return { days, series };
 }

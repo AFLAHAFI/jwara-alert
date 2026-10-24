@@ -9,7 +9,7 @@ import { fmt } from "@/lib/i18n";
 type Props = {
   alertId: string;
   illness: string;
-  wards: { id: number; number: number }[];
+  wards: { id: number; number: number; name?: string | null }[];
   ashas: { id: string; display_name: string }[];
 };
 
@@ -76,6 +76,7 @@ export default function AssignTaskForm({ alertId, illness, wards, ashas }: Props
             {wards.map((w) => (
               <option key={w.id} value={w.id}>
                 {w.number}
+                {w.name ? ` · ${w.name}` : ""}
               </option>
             ))}
           </select>

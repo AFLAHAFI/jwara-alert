@@ -21,7 +21,7 @@ import {
   type TaskRow,
   type WardRow,
 } from "@/lib/area";
-import { LANGS, fmt, pickName, type Lang } from "@/lib/i18n";
+import { LANGS, fmt, pickName, wardLabel, type Lang } from "@/lib/i18n";
 import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -124,7 +124,7 @@ export default async function OfficerAlerts({ searchParams }: { searchParams: { 
                       {alertTasks.map((x) => (
                         <div key={x.id} className="flex items-center justify-between gap-2 text-sm">
                           <span>
-                            {fmt(t.wardN, { n: x.ward_number ?? "" })} · {x.asha_name}
+                            {wardLabel(t, x.ward_number, x.ward_name)} · {x.asha_name}
                           </span>
                           <TaskBadge task={x} t={t} lang={lang} />
                         </div>
