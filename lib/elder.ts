@@ -107,16 +107,14 @@ export async function countActiveSos(panchayatId: number): Promise<number> {
   return count ?? 0;
 }
 
-/** Check if citizen currently has an active open/accepted SOS created within 15 minutes. */
+/** The citizen's active (open or accepted) SOS, however old: it stays on screen until the ASHA resolves it. */
 export async function getActiveSosForUser(userId: string): Promise<SosRequest | null> {
   const db = supabaseAdmin();
-  const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   const { data, error } = await db
     .from("sos_requests")
     .select("id, user_id, panchayat_id, ward_id, lat, lng, status, created_at, accepted_by, accepted_at, resolved_at")
     .eq("user_id", userId)
     .in("status", ["open", "accepted"])
-    .gte("created_at", fifteenMinsAgo)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
