@@ -62,6 +62,9 @@ export default function PinGate({ children }: Props) {
         clearStoredPin();
         setVerified(false);
         if (candidate) setError("PIN തെറ്റാണ്. വീണ്ടും ശ്രമിക്കുക.");
+      } else if (res.status === 429) {
+        setVerified(false);
+        setError("കൂടുതൽ ശ്രമങ്ങൾ. 15 മിനിറ്റ് കഴിഞ്ഞ് ശ്രമിക്കുക.");
       } else {
         throw new Error(`HTTP ${res.status}`);
       }
@@ -104,7 +107,7 @@ export default function PinGate({ children }: Props) {
         {error && (
           <p role="alert" className="rounded-xl bg-red-50 p-3 text-alert">
             {error}
-            <span className="label-en">Wrong PIN or could not verify. Try again.</span>
+            <span className="label-en">Wrong PIN, too many attempts, or could not verify.</span>
           </p>
         )}
         <button type="submit" className="btn-primary" disabled={checking || !pin}>
