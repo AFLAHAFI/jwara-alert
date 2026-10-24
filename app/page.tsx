@@ -31,11 +31,11 @@ export default async function Home() {
       </section>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <Link href={user?.role === "citizen" || !user ? "/report" : ROLE_HOME[user.role]} className="btn-primary min-h-[64px] text-xl">
+        <Link href={user?.role === "citizen" || !user ? "/report" : ROLE_HOME[user.role]} className="btn-primary min-h-[60px] md:text-xl">
           <Icon name="report" className="h-6 w-6" />
           {user && user.role !== "citizen" ? t.goHome : t.cta_report}
         </Link>
-        <Link href="/alerts" className="btn-outline min-h-[64px] text-xl">
+        <Link href="/alerts" className="btn-outline min-h-[60px] md:text-xl">
           <Icon name="bell" className="h-6 w-6" />
           {t.cta_alerts}
         </Link>

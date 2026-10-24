@@ -16,3 +16,12 @@ This project was built for a hackathon with heavy use of AI coding tools. Being 
 
 ## Phase A (accounts, roles, Kerala locations)
 Built with Claude (Sonnet 5.5): SQL migration, auth/session code, role guards, register/login/approval pages. Checked with tsc + lint; all demo names are fake.
+
+## Phase B + C (illness reports, targeted alerts, ASHA tasks)
+Built with Claude (Opus 5.5): disease-aware reports, ward-targeted alerts, officer dashboard, ASHA accounts and
+task assignment. Tested end to end on a Vercel preview in a real browser (every role, plus negative security checks).
+
+## Phase D + E (languages, state admin, design)
+Built with Claude (Opus 5.5): English / Malayalam / Hindi for every screen, API error, illness and place name;
+alert templates in three languages; new logo and app icons; phone-first layout with a bottom tab bar; state admin
+overview. Malayalam and Hindi text was written by the AI and should be reviewed by a native speaker before real use.

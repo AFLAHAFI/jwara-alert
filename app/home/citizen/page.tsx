@@ -58,7 +58,7 @@ export default async function CitizenHome() {
         )}
       </section>
 
-      <Link href="/report" className="btn-primary min-h-[64px] text-xl">
+      <Link href="/report" className="btn-primary min-h-[60px] md:text-xl">
         <Icon name="report" className="h-6 w-6" />
         {t.cta_report}
       </Link>

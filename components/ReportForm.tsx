@@ -168,7 +168,7 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
         </label>
       )}
 
-      <button type="button" className="btn-primary min-h-[72px] text-2xl" disabled={busy || !ready} onClick={submit}>
+      <button type="button" className="btn-primary min-h-[72px] text-xl" disabled={busy || !ready} onClick={submit}>
         <Icon name="report" className="h-7 w-7" />
         {status === "sending" ? t.sending : citizen ? t.report_btn : t.report_btn_anon}
       </button>
