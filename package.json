@@ -10,6 +10,7 @@
     "seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
     "seed:reset": "node --env-file=.env.local --import tsx scripts/seed.ts --reset",
     "seed:accounts": "node --env-file=.env.local --import tsx scripts/seed-accounts.ts",
+    "check:i18n": "node --import tsx scripts/check-i18n.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

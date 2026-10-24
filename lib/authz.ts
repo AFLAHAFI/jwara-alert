@@ -1,8 +1,10 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { decodeSession } from "@/lib/session";
+import { getT } from "@/lib/i18n/server";
 
 export type Role = "state_admin" | "panchayat_officer" | "asha" | "citizen";
 
@@ -17,6 +19,7 @@ export type Profile = {
   designation: string | null;
   approved: boolean;
   disabled: boolean;
+  lang: string | null;
   created_at: string;
 };
 
@@ -25,13 +28,13 @@ export type ScopedUser = Profile & { panchayat_id: number };
 
 /** Never includes password_hash. */
 export const PROFILE_COLS =
-  "id, username, display_name, role, district_id, panchayat_id, ward_id, designation, approved, disabled, created_at";
+  "id, username, display_name, role, district_id, panchayat_id, ward_id, designation, approved, disabled, lang, created_at";
 
 /**
  * Current user from the session cookie, or null. Never throws: a missing SESSION_SECRET
  * or a missing table must not break pages that do not need an account (e.g. /report).
  */
-export async function getCurrentUser(): Promise<Profile | null> {
+export const getCurrentUser = cache(async (): Promise<Profile | null> => {
   const raw = cookies().get("jwara_session")?.value;
   if (!raw) return null;
   try {
@@ -50,20 +53,21 @@ export async function getCurrentUser(): Promise<Profile | null> {
     console.error("[authz] getCurrentUser failed", err);
     return null;
   }
-}
+});
 
 type Ok = { user: Profile; error?: undefined };
 type Denied = { user?: undefined; error: NextResponse };
 
 /** API guard. 401 without a session, 403 for a wrong role or an unapproved account. */
 export async function requireRole(roles: Role[]): Promise<Ok | Denied> {
+  const { t } = getT();
   const user = await getCurrentUser();
-  if (!user) return { error: NextResponse.json({ error: "Please log in" }, { status: 401 }) };
+  if (!user) return { error: NextResponse.json({ error: t.err_login_needed }, { status: 401 }) };
   if (!user.approved) {
-    return { error: NextResponse.json({ error: "Account is waiting for approval" }, { status: 403 }) };
+    return { error: NextResponse.json({ error: t.err_waiting }, { status: 403 }) };
   }
   if (!roles.includes(user.role)) {
-    return { error: NextResponse.json({ error: "Not allowed" }, { status: 403 }) };
+    return { error: NextResponse.json({ error: t.err_not_allowed }, { status: 403 }) };
   }
   return { user };
 }
@@ -75,7 +79,7 @@ export async function requireScoped(
   const r = await requireRole(roles);
   if (r.error) return r;
   if (r.user.panchayat_id === null) {
-    return { error: NextResponse.json({ error: "No panchayat on this account" }, { status: 403 }) };
+    return { error: NextResponse.json({ error: getT().t.err_not_allowed }, { status: 403 }) };
   }
   return { user: r.user as ScopedUser };
 }

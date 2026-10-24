@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/i18n/api";
 import { requireRole } from "@/lib/authz";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
     let q = supabaseAdmin()
       .from("profiles")
       .select(
-        "id, username, display_name, designation, approved, created_at, districts(name_en, name_ml), panchayats(name_en, name_ml)",
+        "id, username, display_name, designation, approved, created_at, districts(name_en, name_ml, name_hi), panchayats(name_en, name_ml, name_hi)",
       )
       .eq("role", "panchayat_officer")
       .order("created_at", { ascending: false })
@@ -27,6 +28,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ officers: data ?? [] });
   } catch (err) {
     console.error("[api/admin/officers] list failed", err);
-    return NextResponse.json({ error: "Could not load officers" }, { status: 500 });
+    return apiError("loadError", 500);
   }
 }

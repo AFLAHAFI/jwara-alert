@@ -2,8 +2,8 @@ import AlertCard, { targetLabel } from "@/components/AlertCard";
 import AssignTaskForm from "@/components/AssignTaskForm";
 import DraftAlert from "@/components/DraftAlert";
 import Forbidden from "@/components/Forbidden";
+import Icon from "@/components/Icon";
 import NewAlertForm from "@/components/NewAlertForm";
-import OfficerNav from "@/components/OfficerNav";
 import TaskBadge from "@/components/TaskBadge";
 import WaitingApproval from "@/components/WaitingApproval";
 import { guardPage } from "@/lib/pageAuth";
@@ -17,31 +17,35 @@ import {
   type AreaAlert,
   type AshaRow,
   type Disease,
+  type PanchayatInfo,
   type TaskRow,
   type WardRow,
 } from "@/lib/area";
+import { LANGS, fmt, pickName, type Lang } from "@/lib/i18n";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function OfficerAlerts({
-  searchParams,
-}: {
-  searchParams: { disease?: string; ward?: string };
-}) {
+function names(row: { name_en: string; name_ml: string; name_hi: string | null } | null): Record<Lang, string> {
+  return { ml: pickName(row, "ml"), en: pickName(row, "en"), hi: pickName(row, "hi") };
+}
+
+export default async function OfficerAlerts({ searchParams }: { searchParams: { disease?: string; ward?: string } }) {
   const user = await guardPage(["panchayat_officer"], { allowUnapproved: true });
   if (!user) return <Forbidden />;
   if (!user.approved) return <WaitingApproval />;
   if (!user.panchayat_id) return <Forbidden />;
+  const { t, lang } = getT();
 
   let diseases: Disease[] = [];
   let wards: WardRow[] = [];
   let alerts: AreaAlert[] = [];
   let ashas: AshaRow[] = [];
   let tasks: TaskRow[] = [];
-  let panchayatMl = "";
+  let panchayat: PanchayatInfo | null = null;
   let failed = false;
   try {
-    const [d, w, a, s, t, p] = await Promise.all([
+    [diseases, wards, alerts, ashas, tasks, panchayat] = await Promise.all([
       getDiseases(),
       getWards(user.panchayat_id),
       getPanchayatAlerts(user.panchayat_id),
@@ -49,95 +53,96 @@ export default async function OfficerAlerts({
       getTasks({ panchayatId: user.panchayat_id }),
       getPanchayat(user.panchayat_id),
     ]);
-    diseases = d;
-    wards = w;
-    alerts = a;
-    ashas = s.filter((x) => !x.disabled);
-    tasks = t;
-    panchayatMl = p?.name_ml ?? "";
   } catch (err) {
     console.error("[officer/alerts] failed", err);
     failed = true;
   }
-
+  const activeAshas = ashas.filter((x) => !x.disabled);
   const drafts = alerts.filter((a) => a.status === "draft");
   const published = alerts.filter((a) => a.status === "published");
+  const now = Date.now();
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">
-        അറിയിപ്പുകൾ <span className="label-en">Alerts and ASHA follow-up</span>
-      </h1>
-      <OfficerNav active="/officer/alerts" />
+    <div className="space-y-5">
+      <h1 className="page-title">{t.oa_title}</h1>
 
       {failed ? (
-        <p role="alert" className="rounded-xl bg-red-50 p-3 text-alert">
-          ഡാറ്റ ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല. <span className="label-en">Could not load data. Refresh the page.</span>
+        <p role="alert" className="err-box">
+          {t.loadError}
         </p>
       ) : (
-        <NewAlertForm
-          key={`${searchParams.disease ?? ""}-${searchParams.ward ?? ""}`}
-          diseases={diseases}
-          wards={wards}
-          panchayatMl={panchayatMl}
-          initialDiseaseId={Number(searchParams.disease) || undefined}
-          initialWardId={Number(searchParams.ward) || undefined}
-        />
-      )}
+        <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+          <NewAlertForm
+            key={`${searchParams.disease ?? ""}-${searchParams.ward ?? ""}`}
+            diseases={diseases.map((d) => ({ id: d.id, slug: d.slug, names: names(d) }))}
+            wards={wards}
+            panchayatNames={names(panchayat)}
+            initialDiseaseId={Number(searchParams.disease) || undefined}
+            initialWardId={Number(searchParams.ward) || undefined}
+          />
 
-      {drafts.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-bold text-amber-800">
-            കരടുകൾ ({drafts.length}) <span className="label-en">Drafts: only you can see these</span>
-          </h2>
-          {drafts.map((a) => {
-            const t = targetLabel(a);
-            return (
-              <DraftAlert
-                key={a.id}
-                id={a.id}
-                body={a.body_ml}
-                title={a.disease ? `${a.disease.name_ml} · ${a.disease.name_en}` : "Alert"}
-                target={`${t.ml} · ${t.en}`}
-              />
-            );
-          })}
-        </section>
-      )}
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-bold">
-          പ്രസിദ്ധീകരിച്ചവ <span className="label-en inline">Published</span>
-        </h2>
-        {published.length === 0 && (
-          <p className="card text-center text-slate-600">
-            ഇതുവരെ ഒന്നുമില്ല. <span className="label-en">Nothing published yet.</span>
-          </p>
-        )}
-        {published.map((a) => {
-          const alertTasks = tasks.filter((t) => t.alert_id === a.id);
-          const taskWards = a.target === "wards" && a.wards.length ? a.wards : wards;
-          return (
-            <div key={a.id} className="space-y-2">
-              <AlertCard alert={a} compact />
-              <div className="card space-y-2 p-4">
-                <p className="text-sm font-semibold">
-                  ആശാ സന്ദർശനങ്ങൾ <span className="label-en inline">ASHA visits ({alertTasks.length})</span>
-                </p>
-                {alertTasks.map((t) => (
-                  <div key={t.id} className="flex items-center justify-between gap-2 text-sm">
-                    <span>
-                      വാർഡ് {t.ward_number} · {t.asha_name}
-                    </span>
-                    <TaskBadge task={t} />
-                  </div>
+          <div className="space-y-5">
+            {drafts.length > 0 && (
+              <section className="space-y-3">
+                <div>
+                  <h2 className="section-title text-amber-800">{fmt(t.drafts, { n: drafts.length })}</h2>
+                  <p className="text-sm text-slate-600">{t.drafts_note}</p>
+                </div>
+                {drafts.map((a) => (
+                  <DraftAlert
+                    key={a.id}
+                    id={a.id}
+                    bodies={{ ml: a.body_ml, en: a.body_en ?? "", hi: a.body_hi ?? "" }}
+                    title={a.disease ? pickName(a.disease, lang) : t.health_alert}
+                    target={targetLabel(a, t)}
+                  />
                 ))}
-                <AssignTaskForm alertId={a.id} diseaseEn={a.disease?.name_en ?? "follow-up"} wards={taskWards} ashas={ashas} />
-              </div>
-            </div>
-          );
-        })}
-      </section>
+              </section>
+            )}
+
+            <section className="space-y-3">
+              <h2 className="section-title">
+                <Icon name="send" />
+                {t.published}
+              </h2>
+              {published.length === 0 && <p className="card text-center text-slate-600">{t.nothing_published}</p>}
+              {published.map((a) => {
+                const alertTasks = tasks.filter((x) => x.alert_id === a.id);
+                const taskWards = a.target === "wards" && a.wards.length ? a.wards : wards;
+                const sent = LANGS.filter((l) => (l === "ml" ? true : l === "en" ? !!a.body_en : !!a.body_hi));
+                return (
+                  <div key={a.id} className="space-y-2">
+                    <AlertCard alert={a} t={t} lang={lang} compact now={now} />
+                    <p className="px-1 text-xs text-slate-500">
+                      {fmt(t.languages_sent, { list: sent.map((l) => l.toUpperCase()).join(" · ") })}
+                    </p>
+                    <div className="card space-y-3 p-4">
+                      <p className="section-title text-base">
+                        <Icon name="users" className="h-4 w-4" />
+                        {fmt(t.asha_visits, { n: alertTasks.length })}
+                      </p>
+                      {alertTasks.map((x) => (
+                        <div key={x.id} className="flex items-center justify-between gap-2 text-sm">
+                          <span>
+                            {fmt(t.wardN, { n: x.ward_number ?? "" })} · {x.asha_name}
+                          </span>
+                          <TaskBadge task={x} t={t} lang={lang} />
+                        </div>
+                      ))}
+                      <AssignTaskForm
+                        alertId={a.id}
+                        illness={a.disease ? pickName(a.disease, lang) : t.health_alert}
+                        wards={taskWards}
+                        ashas={activeAshas}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </section>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

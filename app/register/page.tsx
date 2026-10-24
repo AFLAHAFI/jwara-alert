@@ -1,16 +1,17 @@
 import Link from "next/link";
 import RegisterForm from "@/components/RegisterForm";
+import { getT } from "@/lib/i18n/server";
 
 export default function RegisterPage() {
+  const { t } = getT();
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">
-        പൗരൻ രജിസ്ട്രേഷൻ
-        <span className="label-en">Citizen sign-up</span>
-      </h1>
+    <div className="narrow space-y-4">
+      <h1 className="page-title">{t.reg_citizen_title}</h1>
       <RegisterForm mode="citizen" />
       <p className="text-center text-sm">
-        <Link href="/login" className="underline">അക്കൗണ്ട് ഉണ്ടോ? ലോഗിൻ · Already have one? Log in</Link>
+        <Link href="/login" className="underline">
+          {t.have_account}
+        </Link>
       </p>
     </div>
   );

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useI18n } from "@/components/I18nProvider";
 
 export default function LoginForm() {
+  const { t } = useI18n();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,30 +23,50 @@ export default function LoginForm() {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(j.error ?? "Could not log in");
+        setError(j.error ?? t.genericError);
         setBusy(false);
         return;
       }
       window.location.href = "/home";
     } catch {
-      setError("Network problem. Try again.");
+      setError(t.networkError);
       setBusy(false);
     }
   }
 
   return (
-    <form onSubmit={submit} className="card space-y-4">
+    <form onSubmit={submit} className="card space-y-4" noValidate>
       <label className="block">
-        <span className="font-semibold">ഉപയോക്തൃനാമം <span className="label-en inline">Username</span></span>
-        <input className="field mt-1" value={username} autoCapitalize="none" autoComplete="username" onChange={(e) => setUsername(e.target.value)} required />
+        <span className="label">{t.username}</span>
+        <input
+          className="field"
+          value={username}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          autoComplete="username"
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
       </label>
       <label className="block">
-        <span className="font-semibold">പാസ്‌വേഡ് <span className="label-en inline">Password</span></span>
-        <input className="field mt-1" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <span className="label">{t.password}</span>
+        <input
+          className="field"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
       </label>
-      {error && <p role="alert" className="font-semibold text-red-700">{error}</p>}
-      <button type="submit" className="btn-primary" disabled={busy}>
-        {busy ? "കാത്തിരിക്കുക… Please wait…" : "ലോഗിൻ · Log in"}
+      {error && (
+        <p role="alert" className="err-box">
+          {error}
+        </p>
+      )}
+      <button type="submit" className="btn-primary" disabled={busy || !username || !password}>
+        {busy ? t.pleaseWait : t.login_btn}
       </button>
     </form>
   );

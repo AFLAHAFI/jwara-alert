@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/i18n/api";
 import bcrypt from "bcryptjs";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createLimiter } from "@/lib/rateLimit";
+import { getLang } from "@/lib/i18n/server";
 import { clientIp } from "@/lib/clientIp";
 import { SESSION_COOKIE, SESSION_MAX_AGE_S, encodeSession, sessionCookieOptions } from "@/lib/session";
 import {
@@ -21,39 +23,36 @@ const limiter = createLimiter(10, 60 * 60 * 1000);
 /** Officer sign-up. The account stays unapproved until a state admin approves it. */
 export async function POST(req: Request) {
   if (!limiter.hit(clientIp(req))) {
-    return NextResponse.json({ error: "Too many sign-ups. Try again later." }, { status: 429 });
+    return apiError("err_too_many_signup", 429);
   }
 
   let body: Record<string, unknown> | null = null;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return apiError("err_invalid");
   }
   if (!body || typeof body !== "object") {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return apiError("err_invalid");
   }
 
   const displayName = cleanName(body.display_name);
   const username = normalizeUsername(body.username);
   const designation = cleanName(body.designation);
   if (!isValidName(displayName)) {
-    return NextResponse.json({ error: "Please enter your name" }, { status: 400 });
+    return apiError("err_name");
   }
   if (!USERNAME_RE.test(username)) {
-    return NextResponse.json(
-      { error: "Username: 3-30 letters, numbers, dot or underscore" },
-      { status: 400 },
-    );
+    return apiError("err_username");
   }
   if (!isValidPassword(body.password)) {
-    return NextResponse.json({ error: "Password must be 6-72 characters" }, { status: 400 });
+    return apiError("err_password");
   }
   if (!isValidName(designation)) {
-    return NextResponse.json({ error: "Please enter your designation" }, { status: 400 });
+    return apiError("err_designation");
   }
   if (!isId(body.panchayat_id)) {
-    return NextResponse.json({ error: "Please choose district and panchayat" }, { status: 400 });
+    return apiError("choose_panchayat_err");
   }
 
   try {
@@ -64,7 +63,7 @@ export async function POST(req: Request) {
       .eq("id", body.panchayat_id)
       .maybeSingle();
     if (pErr) throw pErr;
-    if (!panchayat) return NextResponse.json({ error: "Unknown panchayat" }, { status: 400 });
+    if (!panchayat) return apiError("err_unknown_place");
 
     const passwordHash = await bcrypt.hash(body.password, 10);
     const { data, error } = await db
@@ -78,12 +77,13 @@ export async function POST(req: Request) {
         panchayat_id: panchayat.id,
         designation,
         approved: false,
+        lang: getLang(),
       })
       .select("id")
       .single();
     if (error) {
       if (error.code === "23505") {
-        return NextResponse.json({ error: "Username is already taken" }, { status: 409 });
+        return apiError("err_username_taken", 409);
       }
       throw error;
     }
@@ -96,6 +96,6 @@ export async function POST(req: Request) {
     return res;
   } catch (err) {
     console.error("[api/auth/register-officer] failed", err);
-    return NextResponse.json({ error: "Could not create account" }, { status: 500 });
+    return apiError("genericError", 500);
   }
 }

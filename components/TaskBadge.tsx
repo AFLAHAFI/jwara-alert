@@ -1,5 +1,6 @@
+import Icon from "@/components/Icon";
 import type { TaskRow } from "@/lib/area";
-import { formatKolkataDate } from "@/lib/time";
+import { fmt, formatDay, type Dict, type Lang } from "@/lib/i18n";
 
 export function isOverdue(t: Pick<TaskRow, "done" | "due_date">): boolean {
   if (t.done || !t.due_date) return false;
@@ -7,16 +8,21 @@ export function isOverdue(t: Pick<TaskRow, "done" | "due_date">): boolean {
   return t.due_date < today;
 }
 
-export default function TaskBadge({ task }: { task: TaskRow }) {
+export default function TaskBadge({ task, t, lang }: { task: TaskRow; t: Dict; lang: Lang }) {
   if (task.done) {
-    return <span className="rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-primary">✓ ചെയ്തു · Done</span>;
+    return (
+      <span className="chip shrink-0 bg-teal-100 text-xs text-primary-dark">
+        <Icon name="check" className="h-3.5 w-3.5" />
+        {t.done}
+      </span>
+    );
   }
   if (isOverdue(task)) {
-    return <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-alert">വൈകി · Overdue</span>;
+    return <span className="chip shrink-0 bg-red-100 text-xs text-alert">{t.overdue}</span>;
   }
   return (
-    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
-      ബാക്കി · Open{task.due_date ? ` · ${formatKolkataDate(task.due_date)}` : ""}
+    <span className="chip shrink-0 bg-amber-100 text-xs text-amber-800">
+      {task.due_date ? fmt(t.dueOn, { date: formatDay(task.due_date, lang) }) : t.open}
     </span>
   );
 }

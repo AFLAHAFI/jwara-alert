@@ -1,16 +1,13 @@
+import Icon from "@/components/Icon";
+import { getT } from "@/lib/i18n/server";
+
 export default function WaitingApproval() {
+  const { t } = getT();
   return (
-    <div className="card space-y-2">
-      <h1 className="text-xl font-bold">
-        അംഗീകാരത്തിനായി കാത്തിരിക്കുന്നു
-        <span className="label-en">Waiting for approval</span>
-      </h1>
-      <p className="text-slate-600">
-        സംസ്ഥാന ആരോഗ്യ വകുപ്പ് നിങ്ങളുടെ അക്കൗണ്ട് അംഗീകരിച്ച ശേഷം ഇവിടെ പ്രവേശിക്കാം.
-        <span className="label-en">
-          You can use this page once the state health department approves your account.
-        </span>
-      </p>
+    <div className="narrow card space-y-3 text-center">
+      <Icon name="clock" className="mx-auto h-12 w-12 text-amber-600" />
+      <h1 className="text-xl font-bold">{t.waiting_title}</h1>
+      <p className="text-slate-600">{t.waiting_body}</p>
     </div>
   );
 }

@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Icon from "@/components/Icon";
+import { useI18n } from "@/components/I18nProvider";
+import { fmt } from "@/lib/i18n";
 import { REPORT_COOLDOWN_MS, REPORT_STORAGE_KEY, WARDS } from "@/lib/constants";
 
 type Status = "idle" | "sending" | "done" | "cooldown" | "error";
@@ -23,25 +26,24 @@ function writeLastReport(ts: number) {
 }
 
 type CitizenInfo = {
-  /** e.g. "Ward 3, Example Panchayat 1" */
-  wardLabel: string;
-  wardLabelMl: string;
-  diseases: { id: number; name_en: string; name_ml: string; slug: string }[];
+  /** Already in the reader's language, e.g. "Ward 3, Example Panchayat 1" */
+  place: string;
+  diseases: { id: number; slug: string; name: string }[];
 };
 
 /**
- * Anonymous visitors pick a ward (original demo). A logged-in citizen's ward comes from
- * the account, and they pick a suspected disease instead. Neither stores a name.
+ * Visitors pick a ward (original demo). A logged-in resident's ward comes from the account
+ * and they pick a suspected illness instead. No name is stored with any report.
  */
 export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
+  const { t } = useI18n();
   const [ward, setWard] = useState<number | "">("");
   const defaultDisease = citizen?.diseases.find((d) => d.slug === "other-fever") ?? citizen?.diseases[0];
   const [diseaseId, setDiseaseId] = useState<number | "">(defaultDisease?.id ?? "");
-  const ready = citizen ? diseaseId !== "" : ward !== "";
   const [status, setStatus] = useState<Status>("idle");
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [waitMin, setWaitMin] = useState(0);
-  const [message, setMessage] = useState("");
+  const ready = citizen ? diseaseId !== "" : ward !== "";
 
   useEffect(() => {
     const last = readLastReport();
@@ -73,17 +75,13 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
   async function submit() {
     if (busy || !ready) return;
     setStatus("sending");
-    setMessage("");
     try {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(citizen ? { disease_id: diseaseId } : { ward }),
       });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        retryAfterMs?: number;
-      };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; retryAfterMs?: number };
       if (res.status === 429) {
         const ms = Math.min(data.retryAfterMs ?? REPORT_COOLDOWN_MS, REPORT_COOLDOWN_MS);
         writeLastReport(Date.now() - (REPORT_COOLDOWN_MS - ms));
@@ -96,112 +94,95 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
       setStatus("done");
     } catch (err) {
       console.error("report failed", err);
-      setMessage("ക്ഷമിക്കണം, അയയ്ക്കാൻ കഴിഞ്ഞില്ല. വീണ്ടും ശ്രമിക്കുക.");
       setStatus("error");
     }
   }
 
+  if (status === "done") {
+    const place = citizen ? citizen.place : fmt(t.wardN, { n: ward });
+    return (
+      <section className="card space-y-3 border-primary/40 bg-teal-50 text-center" role="status">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white">
+          <Icon name="check" className="h-8 w-8" />
+        </span>
+        <p className="text-2xl font-bold text-primary">{t.thanks}</p>
+        <p>{fmt(t.thanks_body, { place })}</p>
+        <p className="text-slate-600">{t.thanks_tip}</p>
+      </section>
+    );
+  }
+
+  if (status === "cooldown") {
+    return (
+      <section className="card space-y-2 bg-amber-50 text-center" role="status">
+        <Icon name="clock" className="mx-auto h-10 w-10 text-amber-600" />
+        <p className="text-xl font-bold">{t.already_reported}</p>
+        <p>{fmt(t.wait_minutes, { n: waitMin })}</p>
+      </section>
+    );
+  }
+
   return (
-    <div className="space-y-5">
-      {status === "done" ? (
-        <section className="card border-primary/40 bg-teal-50 text-center">
-          <p className="text-2xl font-bold text-primary">നന്ദി!</p>
-          <p className="mt-2">
-            നിങ്ങളുടെ റിപ്പോർട്ട് ലഭിച്ചു. {citizen ? citizen.wardLabelMl : `വാർഡ് ${ward}`} നിരീക്ഷണത്തിലാണ്.
-          </p>
-          <p className="label-en mt-1">
-            Thank you. Your report for {citizen ? citizen.wardLabel : `Ward ${ward}`} was recorded.
-          </p>
-          <p className="mt-3 text-base text-slate-600">
-            വെള്ളം തിളപ്പിച്ച് കുടിക്കുക. പനി 2 ദിവസത്തിൽ കൂടുതൽ നീണ്ടാൽ ഡോക്ടറെ കാണുക.
-          </p>
-        </section>
-      ) : status === "cooldown" ? (
-        <section className="card bg-amber-50 text-center">
-          <p className="text-xl font-bold">ഇതിനകം റിപ്പോർട്ട് ചെയ്തു</p>
-          <p className="mt-2">
-            ഏകദേശം {waitMin} മിനിറ്റ് കഴിഞ്ഞ് വീണ്ടും റിപ്പോർട്ട് ചെയ്യാം.
-          </p>
-          <p className="label-en mt-1">
-            Already reported. You can report again in about {waitMin} min.
-          </p>
-        </section>
-      ) : (
-        <section className="card space-y-4">
-          {citizen ? (
-            <>
-              <div className="rounded-xl bg-teal-50 p-3">
-                <p className="font-semibold">{citizen.wardLabelMl}</p>
-                <p className="label-en">{citizen.wardLabel} (from your account)</p>
-              </div>
-              <label className="block">
-                <span className="text-lg font-semibold">
-                  സംശയിക്കുന്ന രോഗം
-                  <span className="label-en">Suspected illness</span>
-                </span>
-                <select
-                  className="field mt-2"
-                  value={diseaseId}
-                  disabled={busy}
-                  onChange={(e) => setDiseaseId(e.target.value ? Number(e.target.value) : "")}
-                >
-                  {citizen.diseases.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name_ml} / {d.name_en}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </>
-          ) : (
+    <section className="card space-y-4">
+      {citizen ? (
+        <>
+          <div className="flex items-center gap-3 rounded-xl bg-teal-50 p-3">
+            <Icon name="pin" className="h-6 w-6 shrink-0 text-primary" />
+            <div>
+              <p className="font-semibold">{citizen.place}</p>
+              <p className="text-sm text-slate-500">{t.from_account}</p>
+            </div>
+          </div>
           <label className="block">
-            <span className="text-lg font-semibold">
-              വാർഡ് തിരഞ്ഞെടുക്കുക
-              <span className="label-en">Select your ward</span>
-            </span>
+            <span className="label text-lg">{t.suspected_illness}</span>
             <select
-              className="field mt-2"
-              value={ward}
+              className="field"
+              value={diseaseId}
               disabled={busy}
-              onChange={(e) => setWard(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) => setDiseaseId(e.target.value ? Number(e.target.value) : "")}
             >
-              <option value="">-- വാർഡ് / Ward --</option>
-              {WARDS.map((w) => (
-                <option key={w} value={w}>
-                  വാർഡ് {w} / Ward {w}
+              {citizen.diseases.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
                 </option>
               ))}
             </select>
           </label>
-          )}
-
-          <button
-            type="button"
-            className="btn-primary min-h-[72px] flex-col gap-0 py-3"
-            disabled={busy || !ready}
-            onClick={submit}
+        </>
+      ) : (
+        <label className="block">
+          <span className="label text-lg">{t.select_ward}</span>
+          <select
+            className="field"
+            value={ward}
+            disabled={busy}
+            onChange={(e) => setWard(e.target.value ? Number(e.target.value) : "")}
           >
-            <span className="text-2xl">
-              {status === "sending" ? "അയയ്ക്കുന്നു…" : citizen ? "റിപ്പോർട്ട് ചെയ്യുക" : "വീട്ടിൽ പനി ഉണ്ട്"}
-            </span>
-            <span className="text-sm font-normal text-teal-100">
-              {citizen ? "Report illness in my house" : "Fever in my house"}
-            </span>
-          </button>
-
-          {message && (
-            <p role="alert" className="rounded-xl bg-red-50 p-3 text-alert">
-              {message}
-              <span className="label-en">Could not send. Please try again.</span>
-            </p>
-          )}
-
-          <p className="text-base text-slate-600">
-            പേരോ ഫോൺ നമ്പറോ ശേഖരിക്കുന്നില്ല. 10 മിനിറ്റിൽ ഒരു റിപ്പോർട്ട് മാത്രം.
-            <span className="label-en">No name or phone collected. One report per 10 minutes.</span>
-          </p>
-        </section>
+            <option value="">— {t.ward} —</option>
+            {WARDS.map((w) => (
+              <option key={w} value={w}>
+                {fmt(t.wardN, { n: w })}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
-    </div>
+
+      <button type="button" className="btn-primary min-h-[72px] text-xl" disabled={busy || !ready} onClick={submit}>
+        <Icon name="report" className="h-7 w-7" />
+        {status === "sending" ? t.sending : citizen ? t.report_btn : t.report_btn_anon}
+      </button>
+
+      {status === "error" && (
+        <p role="alert" className="err-box">
+          {t.report_fail}
+        </p>
+      )}
+
+      <p className="flex gap-2 text-sm text-slate-600">
+        <Icon name="lock" className="mt-0.5 h-4 w-4 shrink-0" />
+        {t.report_privacy}
+      </p>
+    </section>
   );
 }

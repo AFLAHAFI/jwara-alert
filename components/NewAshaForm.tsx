@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Icon from "@/components/Icon";
+import { useI18n } from "@/components/I18nProvider";
 import { useApi } from "@/components/useApi";
+import { fmt } from "@/lib/i18n";
 
 export default function NewAshaForm() {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +19,7 @@ export default function NewAshaForm() {
     setMsg("");
     const ok = await call("/api/officer/ashas", "POST", { display_name: name, username, password });
     if (ok) {
-      setMsg(`Account created. Give ${name} the username "${username.trim().toLowerCase()}" and the password.`);
+      setMsg(fmt(t.asha_created, { name, u: username.trim().toLowerCase() }));
       setName("");
       setUsername("");
       setPassword("");
@@ -24,29 +28,32 @@ export default function NewAshaForm() {
 
   return (
     <form onSubmit={submit} className="card space-y-3">
-      <h2 className="text-lg font-bold">
-        പുതിയ ആശാ അക്കൗണ്ട് <span className="label-en inline">New ASHA account</span>
+      <h2 className="section-title">
+        <Icon name="plus" />
+        {t.new_asha}
       </h2>
       <label className="block">
-        <span className="text-sm font-semibold">പേര് · Name</span>
-        <input className="field mt-1" value={name} maxLength={60} required onChange={(e) => setName(e.target.value)} />
+        <span className="label text-sm">{t.name}</span>
+        <input className="field" value={name} maxLength={60} required onChange={(e) => setName(e.target.value)} />
       </label>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-semibold">Username</span>
+          <span className="label text-sm">{t.username}</span>
           <input
-            className="field mt-1 text-base"
+            className="field text-base"
             value={username}
             maxLength={30}
             autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             required
             onChange={(e) => setUsername(e.target.value)}
           />
         </label>
         <label className="block">
-          <span className="text-sm font-semibold">Password</span>
+          <span className="label text-sm">{t.password}</span>
           <input
-            className="field mt-1 text-base"
+            className="field text-base"
             type="password"
             autoComplete="new-password"
             value={password}
@@ -57,10 +64,19 @@ export default function NewAshaForm() {
           />
         </label>
       </div>
-      {error && <p role="alert" className="rounded-xl bg-red-50 p-2 text-alert">{error}</p>}
-      {msg && <p className="rounded-xl bg-teal-50 p-2 text-primary">{msg}</p>}
+      <p className="hint">{t.username_hint} · {t.password_hint}</p>
+      {error && (
+        <p role="alert" className="err-box">
+          {error}
+        </p>
+      )}
+      {msg && (
+        <p role="status" className="ok-box">
+          {msg}
+        </p>
+      )}
       <button type="submit" className="btn-primary" disabled={busy}>
-        {busy ? "…" : "ഉണ്ടാക്കുക · Create"}
+        {busy ? t.pleaseWait : t.create}
       </button>
     </form>
   );

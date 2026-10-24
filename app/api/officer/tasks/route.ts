@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireScoped } from "@/lib/authz";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { bad, fail, readJson, UUID_RE } from "@/lib/http";
+import { fail, readJson, UUID_RE } from "@/lib/http";
+import { apiError } from "@/lib/i18n/api";
 import { cleanName, isId } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -21,15 +22,15 @@ export async function POST(req: Request) {
   if (r.error) return r.error;
   const { alert_id, ward_id, assigned_to, title, due_date } = r.body;
 
-  if (typeof alert_id !== "string" || !UUID_RE.test(alert_id)) return bad("Invalid alert");
-  if (!isId(ward_id)) return bad("Choose a ward");
-  if (typeof assigned_to !== "string" || !UUID_RE.test(assigned_to)) return bad("Choose an ASHA worker");
+  if (typeof alert_id !== "string" || !UUID_RE.test(alert_id)) return apiError("err_invalid");
+  if (!isId(ward_id)) return apiError("err_pick_ward");
+  if (typeof assigned_to !== "string" || !UUID_RE.test(assigned_to)) return apiError("err_asha_scope");
   const cleanTitle = cleanName(title);
-  if (!cleanTitle || cleanTitle.length > 160) return bad("Task title is empty or too long");
+  if (!cleanTitle || cleanTitle.length > 160) return apiError("err_task_title");
   let due: string | null = null;
   if (due_date !== undefined && due_date !== null && due_date !== "") {
     if (typeof due_date !== "string" || !DATE_RE.test(due_date) || Number.isNaN(Date.parse(due_date))) {
-      return bad("Invalid due date");
+      return apiError("err_due");
     }
     due = due_date;
   }
@@ -51,10 +52,10 @@ export async function POST(req: Request) {
     if (alertRes.error) throw alertRes.error;
     if (wardRes.error) throw wardRes.error;
     if (ashaRes.error) throw ashaRes.error;
-    if (!alertRes.data) return bad("Alert not found", 404);
-    if (alertRes.data.status !== "published") return bad("Publish the alert before assigning tasks", 409);
-    if (!wardRes.data) return bad("Ward is not in your panchayat", 403);
-    if (!ashaRes.data) return bad("ASHA worker not found in your panchayat", 403);
+    if (!alertRes.data) return apiError("err_not_found", 404);
+    if (alertRes.data.status !== "published") return apiError("err_publish_first", 409);
+    if (!wardRes.data) return apiError("err_ward_scope", 403);
+    if (!ashaRes.data) return apiError("err_asha_scope", 403);
 
     const { error } = await db.from("tasks").insert({
       alert_id,
@@ -68,6 +69,6 @@ export async function POST(req: Request) {
     if (error) throw error;
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (err) {
-    return fail("api/officer/tasks", err, "Could not create task");
+    return fail("api/officer/tasks", err);
   }
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase D + E — languages, state admin, design
+- Language switch on every page: മലയാളം (default), English, हिन्दी; remembered per device and per account
+- Every screen, API error, illness and place name translated; `npm run check:i18n`
+- Officer alerts in up to 3 languages from illness-specific templates; residents see their language (Malayalam fallback)
+- New logo, favicon, app icons, social preview image, PWA manifest ("Add to Home screen")
+- Phone-first layout: bottom tab bar per role, 2-column dashboards on laptops, skeleton loading, offline notice
+- State admin: Kerala KPIs, district table + drill-down, red wards with alert status, officer switch-off
+- Migration `003_i18n_admin.sql` (additive only)
+
 ## Phase B + C — citizen reports by illness, area alerts, officer tools, ASHA tasks
 - Migration `supabase/migrations/002_phase_bc.sql` (additive): `alert_wards`, task due date/done time, `profiles.disabled`
 - Citizens: illness dropdown on `/report` (ward from account, still anonymous); `/alerts` shows only their area; `/home/citizen` latest alert + counts

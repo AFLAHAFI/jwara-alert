@@ -1,43 +1,92 @@
 import Link from "next/link";
 import EmergencyNumbers from "@/components/EmergencyNumbers";
+import Icon, { type IconName } from "@/components/Icon";
+import Logo from "@/components/Logo";
+import { getCurrentUser, ROLE_HOME } from "@/lib/authz";
+import { getT } from "@/lib/i18n/server";
 
-export default function Home() {
+export default async function Home() {
+  const { t } = getT();
+  const user = await getCurrentUser();
+  const steps: { icon: IconName; title: string; body: string; tone: string }[] = [
+    { icon: "report", title: t.how1_t, body: t.how1_d, tone: "bg-teal-100 text-primary" },
+    { icon: "alert", title: t.how2_t, body: t.how2_d, tone: "bg-red-100 text-alert" },
+    { icon: "users", title: t.how3_t, body: t.how3_d, tone: "bg-amber-100 text-amber-800" },
+  ];
+
   return (
-    <div className="space-y-5">
-      <section className="card">
-        <h1 className="text-2xl font-bold">
-          പഞ്ചായത്തിലെ പനി നേരത്തെ കണ്ടെത്താം
-          <span className="label-en mt-1">
-            Spot fever clusters in the panchayat early, then act.
-          </span>
-        </h1>
-        <p className="mt-3 text-slate-600">
-          വ്യക്തിഗത വിവരങ്ങൾ ഒന്നും ശേഖരിക്കുന്നില്ല. വാർഡും സമയവും മാത്രം.
-          <span className="label-en">No personal data. Only ward and time.</span>
-        </p>
+    <div className="space-y-6 md:space-y-8">
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-dark p-5 text-white shadow-md md:flex md:items-center md:gap-8 md:p-10">
+        <div className="hidden w-fit shrink-0 rounded-2xl bg-white p-2 md:block">
+          <Logo className="h-24 w-24" />
+        </div>
+        <div className="space-y-3">
+          <h1 className="text-[1.6rem] font-bold leading-tight md:text-4xl">{t.home_title}</h1>
+          <p className="text-teal-50 md:text-lg">{t.home_sub}</p>
+          <p className="flex items-center gap-1 text-sm text-teal-100">
+            <Icon name="lock" className="h-4 w-4" />
+            {t.privacy_note}
+          </p>
+        </div>
       </section>
 
-      <Link href="/report" className="btn-primary flex-col gap-0 py-3 text-center">
-        വീട്ടിൽ പനി ഉണ്ടെന്ന് അറിയിക്കുക
-        <span className="text-sm font-normal text-teal-100">Report fever</span>
-      </Link>
-      <Link href="/alerts" className="btn-outline flex-col gap-0 py-3 text-center">
-        അറിയിപ്പുകൾ കാണുക
-        <span className="text-sm font-normal">View alerts</span>
-      </Link>
-      <Link href="/dashboard" className="block text-center text-sm text-slate-500 underline">
-        ആരോഗ്യ പ്രവർത്തകർക്ക് · Health worker dashboard
-      </Link>
-
-      <div className="grid grid-cols-2 gap-2 text-center text-sm">
-        <Link href="/login" className="btn-outline">ലോഗിൻ · Log in</Link>
-        <Link href="/register" className="btn-outline">രജിസ്റ്റർ · Sign up</Link>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Link href={user?.role === "citizen" || !user ? "/report" : ROLE_HOME[user.role]} className="btn-primary min-h-[60px] md:text-xl">
+          <Icon name="report" className="h-6 w-6" />
+          {user && user.role !== "citizen" ? t.goHome : t.cta_report}
+        </Link>
+        <Link href="/alerts" className="btn-outline min-h-[60px] md:text-xl">
+          <Icon name="bell" className="h-6 w-6" />
+          {t.cta_alerts}
+        </Link>
       </div>
-      <Link href="/officer/register" className="block text-center text-sm text-slate-500 underline">
-        പഞ്ചായത്ത് ഉദ്യോഗസ്ഥർക്ക് · Officer sign-up
-      </Link>
 
-      <EmergencyNumbers />
+      <section aria-labelledby="how" className="space-y-3">
+        <h2 id="how" className="section-title text-xl">
+          {t.how_title}
+        </h2>
+        <ol className="grid gap-3 md:grid-cols-3">
+          {steps.map((s, i) => (
+            <li key={s.title} className="card flex gap-4 md:flex-col">
+              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${s.tone}`}>
+                <Icon name={s.icon} className="h-6 w-6" />
+              </span>
+              <div>
+                <p className="font-bold">
+                  {i + 1}. {s.title}
+                </p>
+                <p className="text-slate-600">{s.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {!user && (
+        <section className="grid gap-3 md:grid-cols-2">
+          <Link href="/login" className="btn-ghost">
+            <Icon name="login" />
+            {t.login}
+          </Link>
+          <Link href="/register" className="btn-ghost">
+            <Icon name="user" />
+            {t.new_citizen_account}
+          </Link>
+          <Link href="/officer/register" className="text-center text-sm text-slate-600 underline md:col-span-2">
+            {t.officer_signup_link}
+          </Link>
+        </section>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <EmergencyNumbers />
+        <div className="card space-y-2 text-sm text-slate-600">
+          <p>{t.install_hint}</p>
+          <Link href="/dashboard" className="inline-block underline">
+            {t.pin_demo_link}
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

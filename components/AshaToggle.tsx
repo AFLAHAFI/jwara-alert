@@ -1,22 +1,34 @@
 "use client";
 
+import { useI18n } from "@/components/I18nProvider";
 import { useApi } from "@/components/useApi";
 
-export default function AshaToggle({ id, disabled }: { id: string; disabled: boolean }) {
+/** Switches an account off/on. `endpoint` is the POST route; the body is built by `body`. */
+export default function AccountToggle({
+  endpoint,
+  disabled,
+  kind = "asha",
+}: {
+  endpoint: string;
+  disabled: boolean;
+  kind?: "asha" | "officer";
+}) {
+  const { t } = useI18n();
   const { busy, error, call } = useApi();
+  const body = kind === "asha" ? { disabled: !disabled } : { action: disabled ? "enable" : "disable" };
   return (
-    <div className="text-right">
+    <div className="shrink-0 text-right">
       <button
         type="button"
         disabled={busy}
-        onClick={() => call(`/api/officer/ashas/${id}`, "POST", { disabled: !disabled })}
-        className={`rounded-xl border-2 px-3 py-1 text-sm font-semibold ${
+        onClick={() => call(endpoint, "POST", body)}
+        className={`min-h-[40px] rounded-xl border-2 px-3 text-sm font-semibold ${
           disabled ? "border-primary text-primary" : "border-slate-300 text-slate-600"
         }`}
       >
-        {busy ? "…" : disabled ? "ഓൺ ആക്കുക · Enable" : "ഓഫ് ആക്കുക · Disable"}
+        {busy ? "…" : disabled ? t.switch_on : t.switch_off}
       </button>
-      {error && <p className="text-xs text-alert">{error}</p>}
+      {error && <p className="mt-1 text-xs text-alert">{error}</p>}
     </div>
   );
 }

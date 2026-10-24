@@ -1,19 +1,22 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/components/I18nProvider";
 
 /** Small JSON caller for forms: blocks double submits, shows the server's error, refreshes the page on success. */
 export function useApi() {
   const router = useRouter();
+  const { t } = useI18n();
   const inFlight = useRef(false);
-  const [busy, setBusy] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [refreshing, startTransition] = useTransition();
   const [error, setError] = useState("");
 
   async function call(url: string, method: string, body?: unknown): Promise<boolean> {
     if (inFlight.current) return false;
     inFlight.current = true;
-    setBusy(true);
+    setSending(true);
     setError("");
     try {
       const res = await fetch(url, {
@@ -23,19 +26,20 @@ export function useApi() {
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(json.error ?? `Error ${res.status}`);
+        setError(json.error ?? t.genericError);
         return false;
       }
-      router.refresh();
+      // Stay busy until the page has re-rendered, so a second tap cannot hit stale buttons.
+      startTransition(() => router.refresh());
       return true;
     } catch {
-      setError("Network problem. Try again.");
+      setError(t.networkError);
       return false;
     } finally {
       inFlight.current = false;
-      setBusy(false);
+      setSending(false);
     }
   }
 
-  return { busy, error, call, setError };
+  return { busy: sending || refreshing, error, call, setError };
 }

@@ -8,6 +8,7 @@ export type Disease = {
   slug: string;
   name_en: string;
   name_ml: string;
+  name_hi: string | null;
   citizen_selectable: boolean;
 };
 export type WardRow = { id: number; number: number };
@@ -15,8 +16,8 @@ export type PanchayatInfo = {
   id: number;
   name_en: string;
   name_ml: string;
-  district_en: string;
-  district_ml: string;
+  name_hi: string | null;
+  district: { name_en: string; name_ml: string; name_hi: string | null };
 };
 
 /** Supabase returns an embedded to-one relation as an object or a 1-item array. */
@@ -28,7 +29,7 @@ export function one<T>(v: T | T[] | null | undefined): T | null {
 export async function getDiseases(opts: { citizenOnly?: boolean } = {}): Promise<Disease[]> {
   let q = supabaseAdmin()
     .from("diseases")
-    .select("id, slug, name_en, name_ml, citizen_selectable")
+    .select("id, slug, name_en, name_ml, name_hi, citizen_selectable")
     .order("sort_order");
   if (opts.citizenOnly) q = q.eq("citizen_selectable", true);
   const { data, error } = await q;
@@ -39,18 +40,18 @@ export async function getDiseases(opts: { citizenOnly?: boolean } = {}): Promise
 export async function getPanchayat(id: number): Promise<PanchayatInfo | null> {
   const { data, error } = await supabaseAdmin()
     .from("panchayats")
-    .select("id, name_en, name_ml, districts(name_en, name_ml)")
+    .select("id, name_en, name_ml, name_hi, districts(name_en, name_ml, name_hi)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const d = one(data.districts as unknown as { name_en: string; name_ml: string } | null);
+  const d = one(data.districts as unknown as PanchayatInfo["district"] | null);
   return {
     id: data.id,
     name_en: data.name_en,
     name_ml: data.name_ml,
-    district_en: d?.name_en ?? "",
-    district_ml: d?.name_ml ?? "",
+    name_hi: data.name_hi,
+    district: d ?? { name_en: "", name_ml: "", name_hi: null },
   };
 }
 
@@ -92,23 +93,29 @@ export async function getWindowReports(
   }
 }
 
+export type AlertDisease = { id: number; name_en: string; name_ml: string; name_hi: string | null; slug: string };
+
 export type AreaAlert = {
   id: string;
   body_ml: string;
+  body_en: string | null;
+  body_hi: string | null;
   status: "draft" | "published";
   target: "all" | "wards";
   created_at: string;
   published_at: string | null;
-  disease: { id: number; name_en: string; name_ml: string; slug: string } | null;
+  disease: AlertDisease | null;
   wards: { id: number; number: number }[];
 };
 
 const ALERT_SELECT =
-  "id, body_ml, status, target, created_at, published_at, diseases(id, slug, name_en, name_ml), alert_wards(wards(id, number))";
+  "id, body_ml, body_en, body_hi, status, target, created_at, published_at, diseases(id, slug, name_en, name_ml, name_hi), alert_wards(wards(id, number))";
 
 type RawAlert = {
   id: string;
   body_ml: string;
+  body_en: string | null;
+  body_hi: string | null;
   status: "draft" | "published";
   target: "all" | "wards";
   created_at: string;
@@ -125,6 +132,8 @@ function shapeAlert(a: RawAlert): AreaAlert {
   return {
     id: a.id,
     body_ml: a.body_ml,
+    body_en: a.body_en,
+    body_hi: a.body_hi,
     status: a.status,
     target: a.target,
     created_at: a.created_at,
@@ -181,12 +190,11 @@ export type TaskRow = {
   created_at: string;
   ward_number: number | null;
   asha_name: string | null;
-  disease_en: string | null;
-  disease_ml: string | null;
+  disease: { name_en: string; name_ml: string; name_hi: string | null } | null;
 };
 
 const TASK_SELECT =
-  "id, alert_id, assigned_to, title, done, done_at, due_date, created_at, wards(number), profiles!tasks_assigned_to_fkey(display_name), alerts(diseases(name_en, name_ml))";
+  "id, alert_id, assigned_to, title, done, done_at, due_date, created_at, wards(number), profiles!tasks_assigned_to_fkey(display_name), alerts(diseases(name_en, name_ml, name_hi))";
 
 type RawTask = {
   id: string;
@@ -204,7 +212,7 @@ type RawTask = {
 
 function shapeTask(t: RawTask): TaskRow {
   const alert = one(t.alerts as { diseases: unknown } | null);
-  const disease = one(alert?.diseases as { name_en: string; name_ml: string } | null);
+  const disease = one(alert?.diseases as TaskRow["disease"]);
   return {
     id: t.id,
     alert_id: t.alert_id,
@@ -216,8 +224,7 @@ function shapeTask(t: RawTask): TaskRow {
     created_at: t.created_at,
     ward_number: one(t.wards as { number: number } | null)?.number ?? null,
     asha_name: one(t.profiles as { display_name: string } | null)?.display_name ?? null,
-    disease_en: disease?.name_en ?? null,
-    disease_ml: disease?.name_ml ?? null,
+    disease,
   };
 }
 
@@ -233,4 +240,23 @@ export async function getTasks(opts: { panchayatId?: number; assignedTo?: string
     .limit(300);
   if (error) throw error;
   return ((data ?? []) as RawTask[]).map(shapeTask);
+}
+
+export type AlertStatus = "sent" | "draft" | "none";
+
+/**
+ * Has this ward been alerted about this illness in the red-rule window?
+ * "sent" = a published alert for the whole panchayat or naming this ward; "draft" = only a draft.
+ */
+export function alertStatusFor(alerts: AreaAlert[], wardId: number, diseaseId: number, sinceMs: number): AlertStatus {
+  let draft = false;
+  for (const a of alerts) {
+    if (a.disease?.id !== diseaseId) continue;
+    if (new Date(a.created_at).getTime() < sinceMs) continue;
+    const covers = a.target === "all" || a.wards.some((w) => w.id === wardId);
+    if (!covers) continue;
+    if (a.status === "published") return "sent";
+    draft = true;
+  }
+  return draft ? "draft" : "none";
 }
