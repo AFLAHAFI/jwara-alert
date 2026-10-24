@@ -25,3 +25,8 @@ task assignment. Tested end to end on a Vercel preview in a real browser (every 
 Built with Claude (Opus 5.5): English / Malayalam / Hindi for every screen, API error, illness and place name;
 alert templates in three languages; new logo and app icons; phone-first layout with a bottom tab bar; state admin
 overview. Malayalam and Hindi text was written by the AI and should be reviewed by a native speaker before real use.
+
+## Real places, maps and trends
+Built with Claude (Opus 5.5) from the team's list of real panchayats and ward names: migration, ward heat map, Kerala tile map,
+7-day trend chart, per-account report limit and WhatsApp share. Tested on a Vercel preview in a real browser. Elected members'
+names from the source list were deliberately not stored.

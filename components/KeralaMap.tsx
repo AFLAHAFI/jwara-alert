@@ -63,7 +63,7 @@ export default function KeralaMap({
   ];
   return (
     <figure className="space-y-3">
-      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto w-full max-w-[280px]" role="img" aria-label={t.kerala_map}>
+      <svg viewBox={`-4 -4 ${W + 8} ${H + 8}`} className="mx-auto w-full max-w-[240px] sm:max-w-[280px]" role="img" aria-label={t.kerala_map}>
         {districts.map((d) => {
           const pos = LAYOUT[d.name_en];
           if (!pos) return null;

@@ -1,5 +1,13 @@
 # Changelog
 
+## Real places, maps and trends
+- Migration `004_real_places.sql`: 28 real grama panchayats (2 per district), renamed in place so no data is lost; real ward counts (493 wards) and ward names 1–10
+- Ward names shown everywhere ("Ward 3 · Parakkode")
+- Per-account report limit (10 minutes), atomic, on top of the per-phone limit
+- "Share on WhatsApp" on every published alert, in the reader's language
+- Officer: ward heat map with tap-for-details, and a 7-day trend per illness (rising / falling / steady)
+- State admin: schematic Kerala district map linked to district pages
+
 ## Phase D + E — languages, state admin, design
 - Language switch on every page: മലയാളം (default), English, हिन्दी; remembered per device and per account
 - Every screen, API error, illness and place name translated; `npm run check:i18n`

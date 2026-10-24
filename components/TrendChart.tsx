@@ -31,7 +31,7 @@ export default function TrendChart({ trend, t, lang }: { trend: Trend; t: Dict; 
           </g>
         ))}
         {trend.days.map((d, i) => (
-          <text key={d} x={x(i)} y={H - 8} textAnchor="middle" fontSize={9} fill="#64748b">
+          <text key={d} x={x(i)} y={H - 8} textAnchor={i === 0 ? "start" : i === 6 ? "end" : "middle"} fontSize={9} fill="#64748b">
             {i % 2 === 0 || i === 6 ? formatDay(d, lang) : ""}
           </text>
         ))}
