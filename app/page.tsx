@@ -41,6 +41,17 @@ export default async function Home() {
         </Link>
       </div>
 
+      <Link href="/ward" className="card flex items-center gap-4 border-2 border-green-200 transition-colors hover:border-primary">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-800">
+          <Icon name="shield" className="h-6 w-6" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-lg font-bold">{t.ws_cta}</span>
+          <span className="block text-slate-600">{t.ws_cta_d}</span>
+        </span>
+        <Icon name="chevron" className="h-5 w-5 shrink-0" />
+      </Link>
+
       <section aria-labelledby="how" className="space-y-3">
         <h2 id="how" className="section-title text-xl">
           {t.how_title}

@@ -148,6 +148,13 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
             <Icon name="chevron" className="h-4 w-4" />
           </p>
         </Link>
+        <Link href="/officer/facilities" className="card col-span-2 flex items-center justify-between gap-2 p-4 transition-colors hover:border-primary">
+          <span className="flex items-center gap-2 font-semibold">
+            <Icon name="plus" className="h-5 w-5 text-primary" />
+            {t.fac_title}
+          </span>
+          <Icon name="chevron" className="h-4 w-4" />
+        </Link>
         <div className="card col-span-2 p-4">
           <p className="mb-2 text-sm font-semibold text-slate-600">{t.top_illnesses}</p>
           {top.length === 0 ? (
