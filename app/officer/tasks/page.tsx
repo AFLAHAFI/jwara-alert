@@ -4,7 +4,7 @@ import TaskBadge, { isOverdue } from "@/components/TaskBadge";
 import WaitingApproval from "@/components/WaitingApproval";
 import { guardPage } from "@/lib/pageAuth";
 import { getTasks, type TaskRow } from "@/lib/area";
-import { fmt, formatDateTime, pickName } from "@/lib/i18n";
+import { fmt, formatDateTime, pickName, wardLabel } from "@/lib/i18n";
 import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -63,7 +63,7 @@ export default async function OfficerTasks() {
               <TaskBadge task={x} t={t} lang={lang} />
             </div>
             <p className="text-sm text-slate-600">
-              {fmt(t.wardN, { n: x.ward_number ?? "" })} · {x.asha_name ?? "—"}
+              {wardLabel(t, x.ward_number, x.ward_name)} · {x.asha_name ?? "—"}
               {x.disease ? ` · ${pickName(x.disease, lang)}` : ""}
             </p>
             {x.done && x.done_at && <p className="text-xs text-slate-500">{fmt(t.doneAt, { date: formatDateTime(x.done_at, lang) })}</p>}

@@ -26,7 +26,7 @@ function writeLastReport(ts: number) {
 }
 
 type CitizenInfo = {
-  /** Already in the reader's language, e.g. "Ward 3, Example Panchayat 1" */
+  /** Already in the reader's language, e.g. "Ward 3 · Parakkode, Kunnathunad" */
   place: string;
   diseases: { id: number; slug: string; name: string }[];
 };

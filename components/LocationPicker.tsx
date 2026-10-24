@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/I18nProvider";
-import { pickName } from "@/lib/i18n";
+import { pickName, wardLabel } from "@/lib/i18n";
 
 type Named = { name_en: string; name_ml: string; name_hi: string | null };
 type District = Named & { id: number };
 type Panchayat = Named & { id: number; district_id: number };
-type Ward = { id: number; panchayat_id: number; number: number };
+type Ward = { id: number; panchayat_id: number; number: number; name: string | null };
 
 type Props = {
   /** "ward" asks for district + panchayat + ward; "panchayat" stops at panchayat. */
@@ -117,7 +117,7 @@ export default function LocationPicker({ level, onChange }: Props) {
             <option value="">— {t.select} —</option>
             {wList.map((x) => (
               <option key={x.id} value={x.id}>
-                {t.wardN.replace("{n}", String(x.number))}
+                {wardLabel(t, x.number, x.name)}
               </option>
             ))}
           </select>

@@ -1,5 +1,5 @@
 import type { RedWard, StateOverview } from "@/lib/admin";
-import { fmt, pickName, type Dict, type Lang } from "@/lib/i18n";
+import { pickName, wardLabel, type Dict, type Lang } from "@/lib/i18n";
 
 export default function RedWardList({ items, data, t, lang }: { items: RedWard[]; data: StateOverview; t: Dict; lang: Lang }) {
   const dById = new Map(data.districts.map((d) => [d.id, d]));
@@ -20,7 +20,7 @@ export default function RedWardList({ items, data, t, lang }: { items: RedWard[]
               {pickName(sById.get(r.diseaseId), lang)} · <span className="tabular-nums">{r.count}</span>
             </p>
             <p className="text-sm text-slate-600">
-              {fmt(t.wardN, { n: r.wardNumber })}, {pickName(pById.get(r.panchayatId), lang)}, {pickName(dById.get(r.districtId), lang)}
+              {wardLabel(t, r.wardNumber, r.wardName)}, {pickName(pById.get(r.panchayatId), lang)}, {pickName(dById.get(r.districtId), lang)}
             </p>
           </div>
           <span className={`chip shrink-0 text-xs ${chip[r.alerted].cls}`}>{chip[r.alerted].text}</span>

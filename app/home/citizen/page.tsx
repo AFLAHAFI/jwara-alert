@@ -3,10 +3,10 @@ import AlertCard from "@/components/AlertCard";
 import Forbidden from "@/components/Forbidden";
 import Icon from "@/components/Icon";
 import { guardPage } from "@/lib/pageAuth";
-import { getAlertsForUser, getPanchayat, getWardNumber, type AreaAlert } from "@/lib/area";
+import { getAlertsForUser, getPanchayat, getWardInfo, type AreaAlert } from "@/lib/area";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { WINDOW_DAYS, windowStart } from "@/lib/redLogic";
-import { fmt, pickName } from "@/lib/i18n";
+import { fmt, pickName, wardLabel } from "@/lib/i18n";
 import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -31,17 +31,17 @@ export default async function CitizenHome() {
   let panchayatCount: number | null = null;
   let place = "";
   try {
-    const [alerts, p, wardNo, wc, pc] = await Promise.all([
+    const [alerts, p, ward, wc, pc] = await Promise.all([
       getAlertsForUser(user, 1),
       user.panchayat_id ? getPanchayat(user.panchayat_id) : null,
-      getWardNumber(user.ward_id),
+      getWardInfo(user.ward_id),
       user.ward_id ? countReports("ward_id", user.ward_id) : 0,
       user.panchayat_id ? countReports("panchayat_id", user.panchayat_id) : 0,
     ]);
     latest = alerts[0] ?? null;
     wardCount = wc;
     panchayatCount = pc;
-    if (p) place = `${fmt(t.wardN, { n: wardNo ?? "" })}, ${pickName(p, lang)}, ${pickName(p.district, lang)}`;
+    if (p) place = `${wardLabel(t, ward?.number, ward?.name)}, ${pickName(p, lang)}, ${pickName(p.district, lang)}`;
   } catch (err) {
     console.error("[home/citizen] failed", err);
   }

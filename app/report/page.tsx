@@ -2,8 +2,8 @@ import Link from "next/link";
 import EmergencyNumbers from "@/components/EmergencyNumbers";
 import ReportForm from "@/components/ReportForm";
 import { getCurrentUser } from "@/lib/authz";
-import { getDiseases, getPanchayat, getWardNumber } from "@/lib/area";
-import { fmt, pickName } from "@/lib/i18n";
+import { getDiseases, getPanchayat, getWardInfo } from "@/lib/area";
+import { pickName, wardLabel } from "@/lib/i18n";
 import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -14,14 +14,14 @@ export default async function ReportPage() {
   let citizen: Parameters<typeof ReportForm>[0]["citizen"];
   if (user?.role === "citizen" && user.ward_id && user.panchayat_id) {
     try {
-      const [diseases, panchayat, wardNo] = await Promise.all([
+      const [diseases, panchayat, ward] = await Promise.all([
         getDiseases({ citizenOnly: true }),
         getPanchayat(user.panchayat_id),
-        getWardNumber(user.ward_id),
+        getWardInfo(user.ward_id),
       ]);
       citizen = {
         diseases: diseases.map((d) => ({ id: d.id, slug: d.slug, name: pickName(d, lang) })),
-        place: `${fmt(t.wardN, { n: wardNo ?? "" })}, ${pickName(panchayat, lang)}`,
+        place: `${wardLabel(t, ward?.number, ward?.name)}, ${pickName(panchayat, lang)}`,
       };
     } catch (err) {
       console.error("[report page] citizen info failed", err);

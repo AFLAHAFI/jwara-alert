@@ -22,6 +22,7 @@ export type RedWard = {
   panchayatId: number;
   wardId: number;
   wardNumber: number;
+  wardName: string | null;
   diseaseId: number;
   count: number;
   alerted: "sent" | "draft" | "none";
@@ -62,8 +63,8 @@ export async function getStateOverview(): Promise<StateOverview> {
   const [districts, panchayats, wards, diseases, officers, reports, alerts, openTasks, doneTasks] = await Promise.all([
     db.from("districts").select("id, name_en, name_ml, name_hi").order("name_en"),
     db.from("panchayats").select("id, district_id, name_en, name_ml, name_hi").order("name_en"),
-    pageAll<{ id: number; panchayat_id: number; number: number }>((a, b) =>
-      db.from("wards").select("id, panchayat_id, number").order("id").range(a, b),
+    pageAll<{ id: number; panchayat_id: number; number: number; name: string | null }>((a, b) =>
+      db.from("wards").select("id, panchayat_id, number, name").order("id").range(a, b),
     ),
     db.from("diseases").select("id, slug, name_en, name_ml, name_hi").order("sort_order"),
     db
@@ -150,7 +151,7 @@ export async function getStateOverview(): Promise<StateOverview> {
       }
       alerted = "draft";
     }
-    redWards.push({ districtId: p.district_id, panchayatId: p.id, wardId, wardNumber: w.number, diseaseId, count, alerted });
+    redWards.push({ districtId: p.district_id, panchayatId: p.id, wardId, wardNumber: w.number, wardName: w.name, diseaseId, count, alerted });
     if (!redWardSet.has(wardId)) {
       redWardSet.add(wardId);
       stat(byPanchayat, p.id).redWards += 1;

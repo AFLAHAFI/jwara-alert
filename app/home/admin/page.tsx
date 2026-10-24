@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Forbidden from "@/components/Forbidden";
 import Icon from "@/components/Icon";
+import KeralaMap from "@/components/KeralaMap";
 import PendingOfficers from "@/components/PendingOfficers";
 import RedWardList from "@/components/RedWardList";
 import StatCard from "@/components/StatCard";
@@ -57,6 +58,14 @@ export default async function AdminHome() {
           </section>
 
           <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+            <section className="card space-y-3 lg:row-span-2">
+              <h2 className="section-title">
+                <Icon name="pin" />
+                {t.kerala_map}
+              </h2>
+              <KeralaMap districts={data.districts} stats={data.byDistrict} t={t} lang={lang} />
+            </section>
+
             <section className="card space-y-3">
               <h2 className="section-title text-alert">
                 <Icon name="alert" />

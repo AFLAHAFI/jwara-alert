@@ -1,7 +1,8 @@
 import Link from "next/link";
-import BarChart from "@/components/BarChart";
 import Forbidden from "@/components/Forbidden";
 import Icon from "@/components/Icon";
+import TrendChart from "@/components/TrendChart";
+import WardHeatMap, { type HeatCell } from "@/components/WardHeatMap";
 import WaitingApproval from "@/components/WaitingApproval";
 import { guardPage } from "@/lib/pageAuth";
 import {
@@ -9,22 +10,25 @@ import {
   getDiseases,
   getPanchayat,
   getPanchayatAlerts,
+  getTrend,
   getWards,
   getWindowReports,
   type AlertStatus,
   type AreaAlert,
   type Disease,
   type PanchayatInfo,
+  type Trend,
+  type WardRow,
 } from "@/lib/area";
 import { countByWardAndDisease, RED_THRESHOLD, WINDOW_DAYS, windowStart, type WardDiseaseCounts } from "@/lib/redLogic";
-import { fmt, pickName } from "@/lib/i18n";
+import { fmt, pickName, wardLabel } from "@/lib/i18n";
 import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 type RedHit = { wardId: number; number: number; disease: Disease; count: number; status: AlertStatus };
 
-export default async function OfficerHome({ searchParams }: { searchParams: { disease?: string } }) {
+export default async function OfficerHome({ searchParams }: { searchParams: { disease?: string; ward?: string } }) {
   const user = await guardPage(["panchayat_officer"], { allowUnapproved: true });
   if (!user) return <Forbidden />;
   if (!user.approved) return <WaitingApproval />;
@@ -35,6 +39,8 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
   let diseases: Disease[] = [];
   let counts: WardDiseaseCounts[] = [];
   let alerts: AreaAlert[] = [];
+  let wardRows: WardRow[] = [];
+  let trend: Trend = { days: [], series: [] };
   let failed = false;
   try {
     const [p, d, wards, reports, a] = await Promise.all([
@@ -46,8 +52,10 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
     ]);
     panchayat = p;
     diseases = d;
+    wardRows = wards;
     counts = countByWardAndDisease(wards, reports);
     alerts = a;
+    trend = await getTrend(user.panchayat_id, d);
   } catch (err) {
     console.error("[home/officer] failed", err);
     failed = true;
@@ -71,13 +79,25 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
   redHits.sort((a, b) => b.count - a.count);
   const redWardIds = new Set(redHits.map((h) => h.wardId));
 
-  const rows = counts.map((w) => ({
-    key: w.wardId,
-    label: fmt(t.wardN, { n: w.number }),
-    count: filter ? w.byDisease.get(filter.id) ?? 0 : w.total,
-    red: redWardIds.has(w.wardId),
+  const nameOf = new Map(wardRows.map((w) => [w.id, w.name]));
+  const maxOne = (m: Map<number, number>) => Math.max(0, ...Array.from(m.entries()).filter(([k]) => k !== 0).map(([, v]) => v));
+  // Heat value = the most reports of ONE illness in the ward (same rule as red), or the chosen illness.
+  const cells: HeatCell[] = counts.map((w) => ({
+    wardId: w.wardId,
+    number: w.number,
+    name: nameOf.get(w.wardId) ?? null,
+    value: filter ? w.byDisease.get(filter.id) ?? 0 : maxOne(w.byDisease),
   }));
-  const total = rows.reduce((s, r) => s + r.count, 0);
+  const total = counts.reduce((s, w) => s + (filter ? w.byDisease.get(filter.id) ?? 0 : w.total), 0);
+  const selId = Number(searchParams.ward) || 0;
+  const selected = counts.find((w) => w.wardId === selId) ?? null;
+  const qs = (ward?: number) => {
+    const p = new URLSearchParams();
+    if (filter) p.set("disease", String(filter.id));
+    if (ward) p.set("ward", String(ward));
+    const q = p.toString();
+    return `/home/officer${q ? `?${q}` : ""}#heat`;
+  };
 
   const totals = new Map<number, number>();
   for (const w of counts) for (const [did, n] of Array.from(w.byDisease.entries())) totals.set(did, (totals.get(did) ?? 0) + n);
@@ -150,8 +170,9 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-lg font-bold">
-                      {fmt(t.wardN, { n: h.number })} · {pickName(h.disease, lang)}
+                      {wardLabel(t, h.number, nameOf.get(h.wardId))}
                     </p>
+                    <p className="font-semibold text-alert">{pickName(h.disease, lang)}</p>
                     <p className="text-sm text-slate-600">{fmt(t.red_hit, { count: h.count, illness: pickName(h.disease, lang) })}</p>
                   </div>
                   <span className={`chip shrink-0 text-xs ${statusChip[h.status].cls}`}>{statusChip[h.status].text}</span>
@@ -172,33 +193,81 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
           <p className="text-xs text-slate-500">{fmt(t.red_rule, { n: RED_THRESHOLD, d: WINDOW_DAYS })}</p>
         </section>
 
-        <section className="card space-y-4">
-          <h2 className="section-title">
-            <Icon name="chart" />
-            {t.reports_per_ward}
-          </h2>
-          <form className="flex items-end gap-2" action="/home/officer">
-            <label className="block flex-1">
-              <span className="label text-sm">{t.illness_filter}</span>
-              <select name="disease" defaultValue={filter ? String(filter.id) : ""} className="field text-base">
-                <option value="">{t.all_illnesses}</option>
-                {diseases.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {pickName(d, lang)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="submit" className="min-h-btn rounded-2xl bg-primary px-4 font-semibold text-white">
-              {t.show}
-            </button>
-          </form>
-          {rows.length === 0 ? (
-            <p className="text-slate-500">{t.no_wards}</p>
-          ) : (
-            <BarChart rows={rows} caption={fmt(t.red_line, { n: RED_THRESHOLD })} />
-          )}
-        </section>
+        <div className="space-y-5">
+          <section id="heat" className="card scroll-mt-24 space-y-4">
+            <h2 className="section-title">
+              <Icon name="pin" />
+              {t.heat_title}
+            </h2>
+            <form className="flex items-end gap-2" action="/home/officer#heat">
+              <label className="block flex-1">
+                <span className="label text-sm">{t.illness_filter}</span>
+                <select name="disease" defaultValue={filter ? String(filter.id) : ""} className="field text-base">
+                  <option value="">{t.all_illnesses}</option>
+                  {diseases.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {pickName(d, lang)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="submit" className="min-h-btn rounded-2xl bg-primary px-4 font-semibold text-white">
+                {t.show}
+              </button>
+            </form>
+            {cells.length === 0 ? (
+              <p className="text-slate-500">{t.no_wards}</p>
+            ) : (
+              <WardHeatMap
+                cells={cells}
+                selected={selected?.wardId}
+                hrefFor={(id) => qs(id === selected?.wardId ? undefined : id)}
+                labels={{ none: t.heat_none, low: t.heat_low, watch: t.heat_watch, red: t.heat_red }}
+              />
+            )}
+            <p className="text-xs text-slate-500">{fmt(t.heat_hint, { d: WINDOW_DAYS })}</p>
+
+            {selected && (
+              <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3" role="region" aria-live="polite">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-bold">
+                    {fmt(t.ward_detail, { ward: wardLabel(t, selected.number, nameOf.get(selected.wardId)), d: WINDOW_DAYS })}
+                  </p>
+                  <Link href={qs()} scroll={false} className="text-sm font-semibold text-primary underline">
+                    {t.close_detail}
+                  </Link>
+                </div>
+                {selected.total === 0 ? (
+                  <p className="text-sm text-slate-600">{t.ward_no_reports}</p>
+                ) : (
+                  <ul className="space-y-1">
+                    {Array.from(selected.byDisease.entries())
+                      .filter(([id]) => byId.has(id))
+                      .sort((a, b) => b[1] - a[1])
+                      .map(([id, n]) => (
+                        <li key={id} className="flex items-center justify-between gap-2 text-sm">
+                          <span>
+                            {pickName(byId.get(id), lang)} <b className="tabular-nums">{n}</b>
+                          </span>
+                          <Link href={`/officer/alerts?disease=${id}&ward=${selected.wardId}`} className="font-semibold text-primary underline">
+                            {t.create_alert}
+                          </Link>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </section>
+
+          <section className="card space-y-3">
+            <h2 className="section-title">
+              <Icon name="chart" />
+              {t.trend_title}
+            </h2>
+            <TrendChart trend={trend} t={t} lang={lang} />
+          </section>
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { adminFetch, getStoredPin } from "@/components/PinGate";
 import Icon from "@/components/Icon";
+import ShareWhatsApp from "@/components/ShareWhatsApp";
 import { useI18n } from "@/components/I18nProvider";
 import { fmt, formatDateTime } from "@/lib/i18n";
 
@@ -97,6 +98,7 @@ export default function LegacyAlerts() {
             {a.body_ml}
           </p>
           {lang !== "ml" && <p className="text-xs text-slate-500">{t.only_ml_note}</p>}
+          <ShareWhatsApp text={a.body_ml} url={typeof window === "undefined" ? "" : window.location.origin} t={t} />
         </article>
       ))}
 
