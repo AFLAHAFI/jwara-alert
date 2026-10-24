@@ -353,7 +353,7 @@ const hi: Dict = {
   sos_active_banner: "{time} पर भेजा गया सक्रिय SOS। स्थिति: {status}",
   checkin_btn: "आज मैं ठीक हूँ",
   checkin_done: "आज उपस्थिति दर्ज ✓",
-  checkin_at: "आज {time} बजे उपस्थिति दर्ज ✓",
+  checkin_at: "आज {time} बजे उपस्थिति दर्ज",
   large_text: "बड़े अक्षर",
   normal_text: "सामान्य अक्षर",
   year_of_birth: "जन्म वर्ष",

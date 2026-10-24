@@ -45,6 +45,18 @@ export async function POST(req: Request) {
     if (existErr) throw existErr;
 
     if (existing) {
+      // The phone sends the SOS first and the location a few seconds later (same request).
+      // Attach the location to the active SOS if it has none yet.
+      if (lat !== null && lng !== null && existing.lat === null) {
+        const { data: located } = await db
+          .from("sos_requests")
+          .update({ lat, lng })
+          .eq("id", existing.id)
+          .is("lat", null)
+          .select("id, status, created_at, lat, lng")
+          .maybeSingle();
+        if (located) return NextResponse.json({ ok: true, sos: located, existing: true }, { status: 200 });
+      }
       return NextResponse.json({ ok: true, sos: existing, existing: true }, { status: 200 });
     }
 

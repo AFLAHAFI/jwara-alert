@@ -33,37 +33,57 @@ export default function ElderActions({
 
     setSosSending(true);
 
-    const sendRequest = async (coords?: { lat: number; lng: number }) => {
-      try {
-        const res = await fetch("/api/sos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(coords ?? {}),
-        });
-        const json = await res.json().catch(() => ({}));
-        if (res.ok && json.sos) {
-          setSos(json.sos);
-          setSosSentSuccess(true);
-          router.refresh();
-        } else {
-          alert(json.error ?? t.genericError);
-        }
-      } catch (err) {
-        console.error(err);
-        alert(t.networkError);
-      } finally {
+    // 1. Send the SOS at once, WITHOUT waiting for location. The browser's location prompt
+    //    can stay open forever if the elder does not answer it, so it must never block the SOS.
+    try {
+      const res = await fetch("/api/sos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.sos) {
+        alert(json.error ?? t.genericError);
         setSosSending(false);
+        return;
       }
-    };
+      setSos(json.sos);
+      setSosSentSuccess(true);
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      alert(t.networkError);
+      setSosSending(false);
+      return;
+    }
+    setSosSending(false);
 
-    if ("geolocation" in navigator) {
+    // 2. Then try to add the location (best effort, gives up after 20 seconds).
+    if (!("geolocation" in navigator)) return;
+    const coords = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
+      const timer = setTimeout(() => resolve(null), 20_000);
       navigator.geolocation.getCurrentPosition(
-        (pos) => sendRequest({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => sendRequest(),
-        { timeout: 5000, enableHighAccuracy: true },
+        (pos) => {
+          clearTimeout(timer);
+          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        () => {
+          clearTimeout(timer);
+          resolve(null);
+        },
+        { timeout: 10_000, enableHighAccuracy: true },
       );
-    } else {
-      sendRequest();
+    });
+    if (!coords) return;
+    try {
+      await fetch("/api/sos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(coords),
+      });
+      router.refresh();
+    } catch {
+      // The SOS is already sent; a missing location is not an error for the elder.
     }
   }
 

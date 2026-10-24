@@ -351,7 +351,7 @@ const en = {
   sos_active_banner: "Active SOS sent at {time}. Status: {status}",
   checkin_btn: "I am OK today",
   checkin_done: "Checked in today ✓",
-  checkin_at: "Checked in today at {time} ✓",
+  checkin_at: "Checked in today at {time}",
   large_text: "Large text",
   normal_text: "Normal text",
   year_of_birth: "Year of birth",

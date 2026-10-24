@@ -353,7 +353,7 @@ const ml: Dict = {
   sos_active_banner: "{time}-ന് അയച്ച SOS നിലവിലുണ്ട്. അവസ്ഥ: {status}",
   checkin_btn: "ഇന്ന് ഞാൻ സുഖമായിരിക്കുന്നു",
   checkin_done: "ഇന്നത്തെ വിവരം അറിയിച്ചു ✓",
-  checkin_at: "ഇന്ന് {time}-ന് വിവരം അറിയിച്ചു ✓",
+  checkin_at: "ഇന്ന് {time}-ന് വിവരം അറിയിച്ചു",
   large_text: "വലിയ അക്ഷരങ്ങൾ",
   normal_text: "സാധാരണ അക്ഷരങ്ങൾ",
   year_of_birth: "ജനിച്ച വർഷം",

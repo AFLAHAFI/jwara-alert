@@ -100,10 +100,8 @@ export async function countActiveSos(panchayatId: number): Promise<number> {
     .select("id", { count: "exact", head: true })
     .eq("panchayat_id", panchayatId)
     .in("status", ["open", "accepted"]);
-  if (error) {
-    console.error("[countActiveSos] failed", error);
-    return 0;
-  }
+  // Throw instead of returning 0: a failed count must never look like "no SOS".
+  if (error) throw error;
   return count ?? 0;
 }
 
@@ -152,17 +150,19 @@ export async function getEldersInPanchayat(
   day = getKolkataToday(),
 ): Promise<ElderWithCheckin[]> {
   const db = supabaseAdmin();
-  const [eldersRes, checkinsRes] = await Promise.all([
-    db
-      .from("profiles")
-      .select("id, display_name, username, ward_id, birth_year, lives_alone, family_phone, wards:ward_id(number, name)")
-      .eq("panchayat_id", panchayatId)
-      .eq("is_elder", true)
-      .eq("approved", true)
-      .eq("disabled", false),
-    db.from("checkins").select("user_id, created_at").eq("day", day),
-  ]);
+  const eldersRes = await db
+    .from("profiles")
+    .select("id, display_name, username, ward_id, birth_year, lives_alone, family_phone, wards:ward_id(number, name)")
+    .eq("panchayat_id", panchayatId)
+    .eq("is_elder", true)
+    .eq("approved", true)
+    .eq("disabled", false);
   if (eldersRes.error) throw eldersRes.error;
+  // Only today's check-ins of THESE elders (not all of Kerala), so the row cap can't hide any.
+  const elderIds = ((eldersRes.data as { id: string }[] | null) ?? []).map((e) => e.id);
+  const checkinsRes = elderIds.length
+    ? await db.from("checkins").select("user_id, created_at").eq("day", day).in("user_id", elderIds)
+    : { data: [] as { user_id: string; created_at: string }[], error: null };
   if (checkinsRes.error) throw checkinsRes.error;
 
   const checkinMap = new Map<string, string>();
