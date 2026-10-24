@@ -20,6 +20,14 @@
 > **All data in this app is fake example data.** No real cases and no real people.
 > Built for **Devin Hacks Kochi**, track **"Make the Invisible Visible"**.
 
+<p align="center">
+  <img src="docs/screenshots/home-ml.jpg" width="200" alt="Home page in Malayalam" />
+  <img src="docs/screenshots/resident-home-ml.jpg" width="200" alt="Resident home in Malayalam" />
+  <img src="docs/screenshots/officer-red-wards-en.jpg" width="200" alt="Officer dashboard with red wards, in English" />
+  <img src="docs/screenshots/officer-alert-hi.jpg" width="200" alt="Creating an alert, in Hindi" />
+  <br /><sub>Home (മലയാളം) · Resident home (മലയാളം) · Officer red wards (English) · New alert (हिन्दी)</sub>
+</p>
+
 ---
 
 ## The problem
