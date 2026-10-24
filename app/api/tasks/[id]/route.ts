@@ -25,6 +25,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       .from("tasks")
       .update({ done: body.done })
       .eq("id", params.id)
+      .is("panchayat_id", null)
       .select("id, alert_id, ward, title, done, created_at")
       .maybeSingle();
     if (error) throw error;

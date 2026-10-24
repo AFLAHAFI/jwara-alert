@@ -27,6 +27,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       .from("alerts")
       .update({ body_ml: text.trim() })
       .eq("id", params.id)
+      .is("panchayat_id", null)
       .eq("status", "draft")
       .select("id, ward, body_ml, status, created_at, published_at")
       .maybeSingle();

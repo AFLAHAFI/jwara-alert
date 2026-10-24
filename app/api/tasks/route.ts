@@ -13,6 +13,7 @@ export async function GET(req: Request) {
     const { data, error } = await supabaseAdmin()
       .from("tasks")
       .select("id, alert_id, ward, title, done, created_at")
+      .is("panchayat_id", null)
       .order("done", { ascending: true })
       .order("created_at", { ascending: false })
       .limit(200);
