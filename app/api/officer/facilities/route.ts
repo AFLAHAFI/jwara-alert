@@ -54,7 +54,10 @@ export async function POST(req: Request) {
       .insert({ panchayat_id: g.user.panchayat_id, name, kind, phone, address, open_24h: open24, created_by: g.user.id })
       .select("id")
       .single();
-    if (error) throw error;
+    if (error) {
+      if (error.code === "23505") return apiError("fac_err_dup", 409);
+      throw error;
+    }
     return NextResponse.json({ ok: true, id: data.id }, { status: 201 });
   } catch (err) {
     return fail("api/officer/facilities POST", err);

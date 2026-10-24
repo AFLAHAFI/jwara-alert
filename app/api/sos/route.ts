@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   const db = supabaseAdmin();
 
   try {
-    // Idempotent: return existing active SOS from last 15 minutes
+    // Idempotent: return the user's active (open or accepted) SOS, whatever its age.
     const { data: existing, error: existErr } = await db
       .from("sos_requests")
       .select("id, status, created_at, lat, lng")
@@ -43,6 +43,18 @@ export async function POST(req: Request) {
     if (existErr) throw existErr;
 
     if (existing) {
+      // The phone sends the SOS first and the location a few seconds later: add it once.
+      if (lat !== null && lng !== null && existing.lat === null) {
+        const { data: upd, error: uErr } = await db
+          .from("sos_requests")
+          .update({ lat, lng })
+          .eq("id", existing.id)
+          .is("lat", null)
+          .select("id, status, created_at, lat, lng")
+          .maybeSingle();
+        if (uErr) throw uErr;
+        if (upd) return NextResponse.json({ ok: true, sos: upd, existing: true }, { status: 200 });
+      }
       return NextResponse.json({ ok: true, sos: existing, existing: true }, { status: 200 });
     }
 

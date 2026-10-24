@@ -33,37 +33,55 @@ export default function ElderActions({
 
     setSosSending(true);
 
-    const sendRequest = async (coords?: { lat: number; lng: number }) => {
-      try {
-        const res = await fetch("/api/sos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(coords ?? {}),
-        });
-        const json = await res.json().catch(() => ({}));
-        if (res.ok && json.sos) {
-          setSos(json.sos);
-          setSosSentSuccess(true);
-          router.refresh();
-        } else {
-          alert(json.error ?? t.genericError);
-        }
-      } catch (err) {
-        console.error(err);
-        alert(t.networkError);
-      } finally {
-        setSosSending(false);
+    // 1. Send the SOS at once. Never wait for the location prompt: an unanswered prompt
+    //    would otherwise stop the SOS from being sent at all.
+    let sent = false;
+    try {
+      const res = await fetch("/api/sos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.sos) {
+        sent = true;
+        setSos(json.sos);
+        setSosSentSuccess(true);
+        router.refresh();
+      } else {
+        alert(json.error ?? t.genericError);
       }
-    };
+    } catch (err) {
+      console.error(err);
+      alert(t.networkError);
+    } finally {
+      setSosSending(false);
+    }
 
-    if ("geolocation" in navigator) {
+    // 2. Then try to add the location. A failure here does not undo the SOS.
+    if (sent && "geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => sendRequest({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => sendRequest(),
-        { timeout: 5000, enableHighAccuracy: true },
+        async (pos) => {
+          try {
+            const res = await fetch("/api/sos", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (res.ok && json.sos) {
+              setSos(json.sos);
+              router.refresh();
+            }
+          } catch (err) {
+            console.error("SOS location not sent", err);
+          }
+        },
+        () => {
+          // Location denied or unavailable: the SOS is already sent without it.
+        },
+        { timeout: 20000, enableHighAccuracy: true, maximumAge: 60000 },
       );
-    } else {
-      sendRequest();
     }
   }
 

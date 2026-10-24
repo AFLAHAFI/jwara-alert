@@ -1,7 +1,7 @@
 import Icon from "@/components/Icon";
 import { fmt, wardLabel } from "@/lib/i18n";
 import type { Dict } from "@/lib/i18n";
-import type { ElderWithCheckin } from "@/lib/elder";
+import { getKolkataToday, type ElderWithCheckin } from "@/lib/elder";
 
 export default function EldersList({
   elders,
@@ -10,7 +10,8 @@ export default function EldersList({
   elders: ElderWithCheckin[];
   t: Dict;
 }) {
-  const currentYear = new Date().getFullYear();
+  // India year (the server runs in UTC): ages stay right on 1 January before 05:30.
+  const currentYear = Number(getKolkataToday().slice(0, 4));
 
   if (elders.length === 0) {
     return (

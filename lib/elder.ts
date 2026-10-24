@@ -93,7 +93,8 @@ export async function getSosRequests(
 }
 
 /** Count of active (open or accepted) SOS requests in a panchayat. */
-export async function countActiveSos(panchayatId: number): Promise<number> {
+/** Active SOS count, or null when it could not be loaded (the card then shows "–", never a false 0). */
+export async function countActiveSos(panchayatId: number): Promise<number | null> {
   const db = supabaseAdmin();
   const { count, error } = await db
     .from("sos_requests")
@@ -102,7 +103,7 @@ export async function countActiveSos(panchayatId: number): Promise<number> {
     .in("status", ["open", "accepted"]);
   if (error) {
     console.error("[countActiveSos] failed", error);
-    return 0;
+    return null;
   }
   return count ?? 0;
 }
@@ -150,17 +151,20 @@ export async function getEldersInPanchayat(
   day = getKolkataToday(),
 ): Promise<ElderWithCheckin[]> {
   const db = supabaseAdmin();
-  const [eldersRes, checkinsRes] = await Promise.all([
-    db
-      .from("profiles")
-      .select("id, display_name, username, ward_id, birth_year, lives_alone, family_phone, wards:ward_id(number, name)")
-      .eq("panchayat_id", panchayatId)
-      .eq("is_elder", true)
-      .eq("approved", true)
-      .eq("disabled", false),
-    db.from("checkins").select("user_id, created_at").eq("day", day),
-  ]);
+  const eldersRes = await db
+    .from("profiles")
+    .select("id, display_name, username, ward_id, birth_year, lives_alone, family_phone, wards:ward_id(number, name)")
+    .eq("panchayat_id", panchayatId)
+    .eq("is_elder", true)
+    .eq("approved", true)
+    .eq("disabled", false);
   if (eldersRes.error) throw eldersRes.error;
+
+  // Only this panchayat's elders: loading every check-in in Kerala would hit the row cap.
+  const elderIds = ((eldersRes.data ?? []) as { id: string }[]).map((e) => e.id);
+  const checkinsRes = elderIds.length
+    ? await db.from("checkins").select("user_id, created_at").eq("day", day).in("user_id", elderIds)
+    : { data: [] as { user_id: string; created_at: string }[], error: null };
   if (checkinsRes.error) throw checkinsRes.error;
 
   const checkinMap = new Map<string, string>();
