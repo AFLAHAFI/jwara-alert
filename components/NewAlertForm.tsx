@@ -33,6 +33,8 @@ export default function NewAlertForm({ diseases, wards, panchayatNames, initialD
   const [texts, setTexts] = useState<Record<Lang, string>>(EMPTY);
   const [edited, setEdited] = useState<Record<Lang, boolean>>(NOT_EDITED);
   const [saved, setSaved] = useState(false);
+  // One id per draft being written; a retry with the same id cannot create a second draft.
+  const [clientRef, setClientRef] = useState(() => crypto.randomUUID());
   const { busy, error, call, setError } = useApi();
 
   const disease = diseases.find((d) => d.id === diseaseId);
@@ -84,6 +86,7 @@ export default function NewAlertForm({ diseases, wards, panchayatNames, initialD
       disease_id: diseaseId,
       target,
       ward_ids: target === "wards" ? picked : [],
+      client_ref: clientRef,
       bodies: {
         ml: texts.ml,
         en: langs.includes("en") ? texts.en : null,
@@ -92,6 +95,7 @@ export default function NewAlertForm({ diseases, wards, panchayatNames, initialD
     });
     if (ok) {
       setSaved(true);
+      setClientRef(crypto.randomUUID());
       setEdited(NOT_EDITED);
       setPicked([]);
       setTarget("all");

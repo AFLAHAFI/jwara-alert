@@ -29,7 +29,6 @@ export async function POST(req: Request) {
   } catch {}
 
   const db = supabaseAdmin();
-  const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
   try {
     // Idempotent: return existing active SOS from last 15 minutes
@@ -38,7 +37,6 @@ export async function POST(req: Request) {
       .select("id, status, created_at, lat, lng")
       .eq("user_id", g.user.id)
       .in("status", ["open", "accepted"])
-      .gte("created_at", fifteenMinsAgo)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();

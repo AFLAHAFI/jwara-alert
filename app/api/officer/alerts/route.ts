@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireScoped } from "@/lib/authz";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { parseBodies } from "@/lib/alertBodies";
-import { fail, readJson } from "@/lib/http";
+import { fail, readJson, UUID_RE } from "@/lib/http";
 import { apiError } from "@/lib/i18n/api";
 import { isId } from "@/lib/validation";
 
@@ -20,7 +20,8 @@ export async function POST(req: Request) {
   const { user } = g;
   const r = await readJson(req);
   if (r.error) return r.error;
-  const { disease_id, target, ward_ids, bodies: rawBodies } = r.body;
+  const { disease_id, target, ward_ids, bodies: rawBodies, client_ref } = r.body;
+  const clientRef = typeof client_ref === "string" && UUID_RE.test(client_ref) ? client_ref : null;
 
   if (!isId(disease_id)) return apiError("err_disease");
   if (target !== "all" && target !== "wards") return apiError("err_target");
@@ -59,10 +60,23 @@ export async function POST(req: Request) {
         ...bodies,
         status: "draft",
         created_by: user.id,
+        client_ref: clientRef,
       })
       .select("id")
       .single();
-    if (error) throw error;
+    if (error) {
+      // Same form submitted twice (retry, double request): return the draft that already exists.
+      if (error.code === "23505" && clientRef) {
+        const { data: same } = await db
+          .from("alerts")
+          .select("id")
+          .eq("client_ref", clientRef)
+          .eq("panchayat_id", user.panchayat_id)
+          .maybeSingle();
+        if (same) return NextResponse.json({ ok: true, id: same.id, existing: true }, { status: 200 });
+      }
+      throw error;
+    }
 
     if (wardIds.length) {
       const { error: awErr } = await db

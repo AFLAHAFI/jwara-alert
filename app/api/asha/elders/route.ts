@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getKolkataToday } from "@/lib/elder";
 import bcrypt from "bcryptjs";
 import { requireScoped } from "@/lib/authz";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
   if (!isValidPassword(r.body.password)) return apiError("err_password");
   if (!isId(r.body.ward_id)) return apiError("choose_ward_err");
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = Number(getKolkataToday().slice(0, 4)); // India date, not server UTC
   let birthYear: number | null = null;
   if (r.body.birth_year !== undefined && r.body.birth_year !== null && r.body.birth_year !== "") {
     const by = Number(r.body.birth_year);
