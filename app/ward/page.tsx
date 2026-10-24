@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export function generateMetadata(): Metadata {
   const { t } = getT();
-  return { title: `${t.ws_title} · ${t.appName}` };
+  return { title: t.ws_title };
 }
 
 /** Tips for each illness group. Unknown slugs fall back to the general tips. */
