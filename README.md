@@ -68,8 +68,8 @@ and sends it as an `x-admin-pin` header; every admin API route checks it on the 
 | --- | --- | --- |
 | `/report` | public | Ward dropdown + one big "വീട്ടിൽ പനി ഉണ്ട്" button. 1 report / 10 min per phone (localStorage + server cookie). 108 / 112 as `tel:` links. |
 | `/dashboard` | admin PIN | Bar chart of reports per ward, last 3 days. RED ward = 5+ reports (`lib/redLogic.ts`) → "Create alert" makes a Malayalam draft from `lib/alertTemplate.ts`. |
-| `/alerts` | public | Published Malayalam alerts, newest first. Admin also sees drafts. *(step 3)* |
-| `/tasks` | admin PIN | Follow-up tasks ("Visit Ward N houses") with done checkbox. *(step 3)* |
+| `/alerts` | public | Published alerts, newest first. Admin (PIN unlocked on /dashboard) also sees drafts and can edit + "Approve and publish". |
+| `/tasks` | admin PIN | Follow-up tasks (one per published alert: "Visit Ward N houses") with a done checkbox. |
 
 ## How AI tools were used
 
