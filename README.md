@@ -40,6 +40,21 @@ npm run dev                  # http://localhost:3000
 
 None of these are prefixed `NEXT_PUBLIC_`, so nothing reaches the browser.
 
+### Example data
+
+```bash
+npm run seed          # adds fake reports: Ward 3 = 6, Ward 7 = 5 (RED), others 0-3
+npm run seed:reset    # wipes reports/alerts/tasks first, then seeds
+```
+
+Everything the seed creates is **fake example data**; the UI says so on every page.
+
+### Admin PIN
+
+`/dashboard` and `/tasks` ask for `ADMIN_PIN`. The browser only keeps it in `sessionStorage`
+and sends it as an `x-admin-pin` header; every admin API route checks it on the server
+(`lib/adminAuth.ts`). Nothing admin-related is decided in the browser.
+
 ## Deploy on Vercel
 
 1. Import the GitHub repo in Vercel (framework: Next.js, defaults are fine).
@@ -52,7 +67,7 @@ None of these are prefixed `NEXT_PUBLIC_`, so nothing reaches the browser.
 | Route | Who | What |
 | --- | --- | --- |
 | `/report` | public | Ward dropdown + one big "വീട്ടിൽ പനി ഉണ്ട്" button. 1 report / 10 min per phone (localStorage + server cookie). 108 / 112 as `tel:` links. |
-| `/dashboard` | admin PIN | Reports per ward, last 3 days. RED ward = 5+ reports → "Create alert". *(step 2)* |
+| `/dashboard` | admin PIN | Bar chart of reports per ward, last 3 days. RED ward = 5+ reports (`lib/redLogic.ts`) → "Create alert" makes a Malayalam draft from `lib/alertTemplate.ts`. |
 | `/alerts` | public | Published Malayalam alerts, newest first. Admin also sees drafts. *(step 3)* |
 | `/tasks` | admin PIN | Follow-up tasks ("Visit Ward N houses") with done checkbox. *(step 3)* |
 
