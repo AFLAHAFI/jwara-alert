@@ -9,10 +9,12 @@
     "lint": "next lint",
     "seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
     "seed:reset": "node --env-file=.env.local --import tsx scripts/seed.ts --reset",
+    "seed:accounts": "node --env-file=.env.local --import tsx scripts/seed-accounts.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
+    "bcryptjs": "^3.0.3",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",

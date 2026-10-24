@@ -1,5 +1,13 @@
 # Changelog
 
+## Phase A — accounts and Kerala locations
+- Migration `supabase/migrations/001_phase_a.sql`: districts, panchayats, wards, diseases, profiles (+ nullable columns on reports/alerts/tasks)
+- Login/register (bcrypt + signed httpOnly session cookie, `SESSION_SECRET`); roles: state_admin, panchayat_officer, asha, citizen
+- Officers register per panchayat and wait for state-admin approval (`/home/admin`)
+- `/login`, `/register`, `/officer/register`, `/home/*`; session-aware header
+- `npm run seed:accounts` creates fake demo accounts
+- Existing `/report`, `/dashboard`, `/alerts`, `/tasks` unchanged
+
 ## Step 3 — alerts and tasks
 - `/alerts` (public): published alerts newest first; with the admin PIN unlocked, drafts appear on top with an editor
 - `PATCH /api/alerts/:id` edits a draft; `POST /api/alerts/:id/publish` approves it (optionally with final text)
