@@ -9,6 +9,8 @@
 - The ASHA elders list loads check-ins only for that panchayat's elders.
 - Language switch falls back to the cookie on any failed request.
 - The check-in text no longer shows a second tick next to the tick icon.
+- Large-text toggle shows an error when saving fails; the report form shows the server's reason for a failure.
+- The ASHA elders list uses the India year for ages; the New alert form works on browsers without `crypto.randomUUID`.
 - Migrations `010_health_facilities.sql` and `011_facility_unique_name.sql` (additive only)
 
 ## Small fixes

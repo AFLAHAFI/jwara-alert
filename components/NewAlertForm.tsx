@@ -20,6 +20,19 @@ type Props = {
 const EMPTY: Record<Lang, string> = { ml: "", en: "", hi: "" };
 const NOT_EDITED: Record<Lang, boolean> = { ml: false, en: false, hi: false };
 
+/** Random v4 UUID. Falls back when crypto.randomUUID is missing (Safari before 15.4, old Chrome). */
+function newClientRef(): string {
+  const c = typeof crypto !== "undefined" ? crypto : undefined;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  const b = new Uint8Array(16);
+  if (c && typeof c.getRandomValues === "function") c.getRandomValues(b);
+  else for (let i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256);
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
 export default function NewAlertForm({ diseases, wards, panchayatNames, initialDiseaseId, initialWardId }: Props) {
   const { t, lang: uiLang } = useI18n();
   const startWard = wards.find((w) => w.id === initialWardId);
@@ -34,7 +47,7 @@ export default function NewAlertForm({ diseases, wards, panchayatNames, initialD
   const [edited, setEdited] = useState<Record<Lang, boolean>>(NOT_EDITED);
   const [saved, setSaved] = useState(false);
   // One id per draft being written; a retry with the same id cannot create a second draft.
-  const [clientRef, setClientRef] = useState(() => crypto.randomUUID());
+  const [clientRef, setClientRef] = useState(newClientRef);
   const { busy, error, call, setError } = useApi();
 
   const disease = diseases.find((d) => d.id === diseaseId);
@@ -95,7 +108,7 @@ export default function NewAlertForm({ diseases, wards, panchayatNames, initialD
     });
     if (ok) {
       setSaved(true);
-      setClientRef(crypto.randomUUID());
+      setClientRef(newClientRef());
       setEdited(NOT_EDITED);
       setPicked([]);
       setTarget("all");

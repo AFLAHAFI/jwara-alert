@@ -41,6 +41,7 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
   const defaultDisease = citizen?.diseases.find((d) => d.slug === "other-fever") ?? citizen?.diseases[0];
   const [diseaseId, setDiseaseId] = useState<number | "">(defaultDisease?.id ?? "");
   const [status, setStatus] = useState<Status>("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [waitMin, setWaitMin] = useState(0);
   const ready = citizen ? diseaseId !== "" : ward !== "";
@@ -75,6 +76,7 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
   async function submit() {
     if (busy || !ready) return;
     setStatus("sending");
+    setErrorMsg("");
     try {
       const res = await fetch("/api/report", {
         method: "POST",
@@ -89,7 +91,11 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
         setStatus("cooldown");
         return;
       }
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      if (!res.ok) {
+        // Show the server's own message (already in the user's language), e.g. a switched-off account.
+        if (data.error) setErrorMsg(data.error);
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
       writeLastReport(Date.now());
       setStatus("done");
     } catch (err) {
@@ -175,7 +181,7 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
 
       {status === "error" && (
         <p role="alert" className="err-box">
-          {t.report_fail}
+          {errorMsg || t.report_fail}
         </p>
       )}
 

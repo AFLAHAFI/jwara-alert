@@ -180,5 +180,5 @@ npm run typecheck && npm run lint && npm run check:i18n
 
 ## How AI tools were used
 
-See [`AI_USAGE.md`](AI_USAGE.md). In short: Devin built the first version, Claude built accounts,
+See [`AI_USAGE.md`](AI_USAGE.md). In short: **Devin built the foundation**: the first working app, anonymous reporting, the red-ward rule that every view still uses, and human-approved alerts. Claude built accounts,
 roles, languages and the state view, Antigravity built elder care, SOS and daily check-ins, Claude fixed the bugs found in audits and built the public ward page and health centres, and the team set every product rule and checked the text.
