@@ -105,7 +105,7 @@ export default function NewAlertForm({ diseases, wards, panchayatMl, initialDise
                 setTarget(t);
                 setSaved(false);
               }}
-              className={`rounded-xl border-2 p-2 text-center ${
+              className={`break-words rounded-xl border-2 p-2 text-center text-sm leading-snug ${
                 target === t ? "border-primary bg-teal-50 font-semibold" : "border-slate-200"
               }`}
             >

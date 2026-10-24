@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const LINKS = [
-  { href: "/home/officer", ml: "ഡാഷ്‌ബോർഡ്", en: "Dashboard" },
+  { href: "/home/officer", ml: "അവലോകനം", en: "Dashboard" },
   { href: "/officer/alerts", ml: "അറിയിപ്പ്", en: "Alerts" },
   { href: "/officer/tasks", ml: "ജോലികൾ", en: "Tasks" },
   { href: "/officer/ashas", ml: "ആശ", en: "ASHAs" },
@@ -14,7 +14,7 @@ export default function OfficerNav({ active }: { active: string }) {
         <Link
           key={l.href}
           href={l.href}
-          className={`rounded-xl px-1 py-2 text-center text-sm leading-tight ${
+          className={`min-w-0 break-words rounded-xl px-1 py-2 text-center text-xs leading-tight ${
             active === l.href ? "bg-primary text-white" : "text-ink hover:bg-teal-50"
           }`}
         >

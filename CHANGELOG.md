@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase B + C — citizen reports by illness, area alerts, officer tools, ASHA tasks
+- Migration `supabase/migrations/002_phase_bc.sql` (additive): `alert_wards`, task due date/done time, `profiles.disabled`
+- Citizens: illness dropdown on `/report` (ward from account, still anonymous); `/alerts` shows only their area; `/home/citizen` latest alert + counts
+- Officers: `/home/officer` dashboard (illness filter, red = 5+ of one illness in 3 days), `/officer/alerts` (whole panchayat or chosen wards, Malayalam template per illness, draft → publish, assign ASHA visits), `/officer/ashas`, `/officer/tasks`
+- ASHAs: `/home/asha` task list with "Mark visit done"
+- All officer/ASHA routes are scoped to the user's own panchayat on the server
+- Old PIN pages only use old rows, so the original demo is unchanged
+- Demo data: `supabase/demo/phase_bc_demo_reports.sql`
+
 ## Phase A — accounts and Kerala locations
 - Migration `supabase/migrations/001_phase_a.sql`: districts, panchayats, wards, diseases, profiles (+ nullable columns on reports/alerts/tasks)
 - Login/register (bcrypt + signed httpOnly session cookie, `SESSION_SECRET`); roles: state_admin, panchayat_officer, asha, citizen
