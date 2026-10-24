@@ -435,6 +435,7 @@ const en = {
   fac_err_name: "Enter a name (2 to 100 letters).",
   fac_err_phone: "Phone can have only numbers, +, - and spaces.",
   fac_err_address: "Address is too long (max 200 letters).",
+  fac_err_dup: "This health centre is already in the list.",
   fac_err_full: "This panchayat already has 50 health centres.",
   fac_kind_phc: "Primary Health Centre (PHC)",
   fac_kind_fhc: "Family Health Centre (FHC)",

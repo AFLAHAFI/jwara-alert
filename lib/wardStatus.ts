@@ -70,7 +70,8 @@ export async function getWardStatus(wardId: number): Promise<WardStatus | null> 
       .select("disease_id")
       .eq("ward_id", wardId)
       .gte("created_at", since)
-      .limit(5000),
+      // Up to 1000 rows (the API row cap). The level needs only 5 reports of one illness.
+      .limit(1000),
     getPanchayatAlerts(place.panchayatId, { publishedOnly: true, limit: 30 }),
   ]);
   if (rep.error) throw rep.error;
