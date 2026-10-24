@@ -13,7 +13,7 @@ const COLUMNS = "id, ward, body_ml, status, created_at, published_at";
 export async function GET(req: Request) {
   const admin = isValidAdminPin(req.headers.get(ADMIN_PIN_HEADER));
   try {
-    let q = supabaseAdmin().from("alerts").select(COLUMNS);
+    let q = supabaseAdmin().from("alerts").select(COLUMNS).is("panchayat_id", null);
     if (!admin) q = q.eq("status", "published");
     const { data, error } = await q.order("created_at", { ascending: false }).limit(200);
     if (error) throw error;

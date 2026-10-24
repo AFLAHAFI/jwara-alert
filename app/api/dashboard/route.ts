@@ -16,11 +16,12 @@ async function fetchReportWards(sinceIso: string): Promise<number[]> {
     const { data, error } = await supabaseAdmin()
       .from("reports")
       .select("ward")
+      .is("panchayat_id", null)
       .gte("created_at", sinceIso)
       .order("created_at", { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) throw error;
-    for (const row of data ?? []) wards.push(row.ward);
+    for (const row of data ?? []) if (row.ward !== null) wards.push(row.ward);
     if (!data || data.length < PAGE) return wards;
   }
 }
@@ -40,6 +41,7 @@ export async function GET(req: Request) {
     const { data: drafts, error: draftErr } = await supabaseAdmin()
       .from("alerts")
       .select("id, ward, status")
+      .is("panchayat_id", null)
       .eq("status", "draft");
     if (draftErr) throw draftErr;
 

@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { isValidWard, REPORT_COOKIE, REPORT_COOLDOWN_MS } from "@/lib/constants";
 import { decodeReportCookie, encodeReportCookie } from "@/lib/reportCookie";
+import { getCurrentUser } from "@/lib/authz";
+import { isId } from "@/lib/validation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,14 +17,42 @@ export const dynamic = "force-dynamic";
  * the server check. (Clearing cookies resets it; good enough for a pilot.)
  */
 export async function POST(req: Request) {
-  let body: { ward?: unknown } | null = null;
+  let body: { ward?: unknown; disease_id?: unknown } | null = null;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
-  if (!body || typeof body !== "object" || !isValidWard(body.ward)) {
-    return NextResponse.json({ error: "Please choose a ward (1-10)" }, { status: 400 });
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  // Logged-in citizen: ward and panchayat come from the account, never from the request.
+  // The report row still stores no user id, so it stays anonymous.
+  const user = await getCurrentUser();
+  const citizen = user && user.role === "citizen" && user.approved && user.ward_id && user.panchayat_id;
+  let row: Record<string, unknown>;
+  if (citizen) {
+    if (!isId(body.disease_id)) {
+      return NextResponse.json({ error: "Please choose a disease" }, { status: 400 });
+    }
+    const { data: disease, error: dErr } = await supabaseAdmin()
+      .from("diseases")
+      .select("id")
+      .eq("id", body.disease_id)
+      .eq("citizen_selectable", true)
+      .maybeSingle();
+    if (dErr) {
+      console.error("[api/report] disease lookup failed", dErr);
+      return NextResponse.json({ error: "Could not save report" }, { status: 500 });
+    }
+    if (!disease) return NextResponse.json({ error: "Unknown disease" }, { status: 400 });
+    row = { ward_id: user.ward_id, panchayat_id: user.panchayat_id, disease_id: disease.id };
+  } else {
+    if (!isValidWard(body.ward)) {
+      return NextResponse.json({ error: "Please choose a ward (1-10)" }, { status: 400 });
+    }
+    row = { ward: body.ward };
   }
 
   const last = decodeReportCookie(cookies().get(REPORT_COOKIE)?.value);
@@ -35,7 +65,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { error } = await supabaseAdmin().from("reports").insert({ ward: body.ward });
+    const { error } = await supabaseAdmin().from("reports").insert(row);
     if (error) throw error;
   } catch (err) {
     console.error("[api/report] insert failed", err);

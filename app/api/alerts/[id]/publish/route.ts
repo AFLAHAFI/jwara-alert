@@ -39,6 +39,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         ...(text !== undefined ? { body_ml: text } : {}),
       })
       .eq("id", params.id)
+      .is("panchayat_id", null)
       .eq("status", "draft")
       .select("id, ward, body_ml, status, created_at, published_at")
       .maybeSingle();

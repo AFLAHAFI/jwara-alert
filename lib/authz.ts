@@ -16,12 +16,16 @@ export type Profile = {
   ward_id: number | null;
   designation: string | null;
   approved: boolean;
+  disabled: boolean;
   created_at: string;
 };
 
+/** Officer or ASHA: an approved account tied to a panchayat. */
+export type ScopedUser = Profile & { panchayat_id: number };
+
 /** Never includes password_hash. */
 export const PROFILE_COLS =
-  "id, username, display_name, role, district_id, panchayat_id, ward_id, designation, approved, created_at";
+  "id, username, display_name, role, district_id, panchayat_id, ward_id, designation, approved, disabled, created_at";
 
 /**
  * Current user from the session cookie, or null. Never throws: a missing SESSION_SECRET
@@ -39,7 +43,9 @@ export async function getCurrentUser(): Promise<Profile | null> {
       .eq("id", uid)
       .maybeSingle();
     if (error) throw error;
-    return (data as Profile | null) ?? null;
+    const user = (data as Profile | null) ?? null;
+    // A disabled account (e.g. an ASHA switched off by the officer) behaves as logged out.
+    return user && !user.disabled ? user : null;
   } catch (err) {
     console.error("[authz] getCurrentUser failed", err);
     return null;
@@ -60,6 +66,18 @@ export async function requireRole(roles: Role[]): Promise<Ok | Denied> {
     return { error: NextResponse.json({ error: "Not allowed" }, { status: 403 }) };
   }
   return { user };
+}
+
+/** API guard for officer/ASHA routes: approved, right role, and tied to a panchayat. */
+export async function requireScoped(
+  roles: Role[],
+): Promise<{ user: ScopedUser; error?: undefined } | Denied> {
+  const r = await requireRole(roles);
+  if (r.error) return r;
+  if (r.user.panchayat_id === null) {
+    return { error: NextResponse.json({ error: "No panchayat on this account" }, { status: 403 }) };
+  }
+  return { user: r.user as ScopedUser };
 }
 
 /** state_admin may touch every panchayat; officers and ASHAs only their own. */

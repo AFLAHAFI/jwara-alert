@@ -1,0 +1,73 @@
+import { NextResponse } from "next/server";
+import { requireScoped } from "@/lib/authz";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { bad, fail, readJson, UUID_RE } from "@/lib/http";
+import { cleanName, isId } from "@/lib/validation";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Officer: assign a follow-up visit for a PUBLISHED alert to an ASHA.
+ * Alert, ward and ASHA must all belong to the officer's panchayat; the ASHA must be active.
+ */
+export async function POST(req: Request) {
+  const g = await requireScoped(["panchayat_officer"]);
+  if (g.error) return g.error;
+  const pid = g.user.panchayat_id;
+  const r = await readJson(req);
+  if (r.error) return r.error;
+  const { alert_id, ward_id, assigned_to, title, due_date } = r.body;
+
+  if (typeof alert_id !== "string" || !UUID_RE.test(alert_id)) return bad("Invalid alert");
+  if (!isId(ward_id)) return bad("Choose a ward");
+  if (typeof assigned_to !== "string" || !UUID_RE.test(assigned_to)) return bad("Choose an ASHA worker");
+  const cleanTitle = cleanName(title);
+  if (!cleanTitle || cleanTitle.length > 160) return bad("Task title is empty or too long");
+  let due: string | null = null;
+  if (due_date !== undefined && due_date !== null && due_date !== "") {
+    if (typeof due_date !== "string" || !DATE_RE.test(due_date) || Number.isNaN(Date.parse(due_date))) {
+      return bad("Invalid due date");
+    }
+    due = due_date;
+  }
+
+  const db = supabaseAdmin();
+  try {
+    const [alertRes, wardRes, ashaRes] = await Promise.all([
+      db.from("alerts").select("id, status").eq("id", alert_id).eq("panchayat_id", pid).maybeSingle(),
+      db.from("wards").select("id, number").eq("id", ward_id).eq("panchayat_id", pid).maybeSingle(),
+      db
+        .from("profiles")
+        .select("id")
+        .eq("id", assigned_to)
+        .eq("role", "asha")
+        .eq("panchayat_id", pid)
+        .eq("disabled", false)
+        .maybeSingle(),
+    ]);
+    if (alertRes.error) throw alertRes.error;
+    if (wardRes.error) throw wardRes.error;
+    if (ashaRes.error) throw ashaRes.error;
+    if (!alertRes.data) return bad("Alert not found", 404);
+    if (alertRes.data.status !== "published") return bad("Publish the alert before assigning tasks", 409);
+    if (!wardRes.data) return bad("Ward is not in your panchayat", 403);
+    if (!ashaRes.data) return bad("ASHA worker not found in your panchayat", 403);
+
+    const { error } = await db.from("tasks").insert({
+      alert_id,
+      panchayat_id: pid,
+      ward_id: wardRes.data.id,
+      assigned_to: ashaRes.data.id,
+      title: cleanTitle,
+      due_date: due,
+      created_by: g.user.id,
+    });
+    if (error) throw error;
+    return NextResponse.json({ ok: true }, { status: 201 });
+  } catch (err) {
+    return fail("api/officer/tasks", err, "Could not create task");
+  }
+}

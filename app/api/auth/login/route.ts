@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   try {
     const { data, error } = await supabaseAdmin()
       .from("profiles")
-      .select("id, password_hash, role, approved")
+      .select("id, password_hash, role, approved, disabled")
       .eq("username", username)
       .maybeSingle();
     if (error) throw error;
@@ -44,6 +44,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Username or password is wrong" }, { status: 401 });
     }
 
+    if (data.disabled) {
+      return NextResponse.json({ error: "This account is switched off. Contact your officer." }, { status: 403 });
+    }
     limiter.reset(key);
     const res = NextResponse.json({ ok: true, role: data.role, approved: data.approved });
     res.cookies.set(SESSION_COOKIE, encodeSession(data.id), {

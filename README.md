@@ -86,3 +86,8 @@ Clearing cookies resets the cooldown; that is an accepted limit of a no-personal
 1. Run `supabase/migrations/001_phase_a.sql` in the Supabase SQL editor (safe to re-run).
 2. Add `SESSION_SECRET` (and `DEMO_PASSWORD` for seeding) to `.env.local`; add `SESSION_SECRET` to Vercel.
 3. `npm run seed:accounts` -> demo logins: `admin_kerala`, `officer_demo`, `officer_pending`, `asha_1`, `asha_2`, `citizen_1`, `citizen_2` (password = `DEMO_PASSWORD`).
+
+## Phase B + C demo
+1. Run `supabase/migrations/002_phase_bc.sql`, then `supabase/demo/phase_bc_demo_reports.sql` (fake reports).
+2. `officer_demo` -> dashboard shows Ward 3 (dengue) and Ward 5 (rat fever) red -> Create alert -> publish -> assign `asha_1`.
+3. `citizen_1` (Ward 1) / `citizen_2` (Ward 2) see only alerts meant for their ward. `asha_1` marks the visit done.
