@@ -4,8 +4,8 @@ export default function Header() {
   return (
     <header className="bg-primary text-white">
       <div className="mx-auto flex w-full max-w-md items-center justify-between px-4 py-3">
-        <Link href="/" className="leading-tight">
-          <span className="block text-xl font-bold">ജ്വര അലർട്ട്</span>
+        <Link href="/" className="mr-3 leading-tight">
+          <span className="block whitespace-nowrap text-xl font-bold">ജ്വര അലർട്ട്</span>
           <span className="block text-xs text-teal-100">Jwara Alert</span>
         </Link>
         <nav className="flex gap-3 text-sm">

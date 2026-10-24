@@ -17,13 +17,13 @@ export default function Home() {
         </p>
       </section>
 
-      <Link href="/report" className="btn-primary">
+      <Link href="/report" className="btn-primary flex-col gap-0 py-3 text-center">
         വീട്ടിൽ പനി ഉണ്ടെന്ന് അറിയിക്കുക
-        <span className="ml-2 text-sm font-normal text-teal-100">Report fever</span>
+        <span className="text-sm font-normal text-teal-100">Report fever</span>
       </Link>
-      <Link href="/alerts" className="btn-outline">
+      <Link href="/alerts" className="btn-outline flex-col gap-0 py-3 text-center">
         അറിയിപ്പുകൾ കാണുക
-        <span className="ml-2 text-sm font-normal">View alerts</span>
+        <span className="text-sm font-normal">View alerts</span>
       </Link>
       <Link href="/dashboard" className="block text-center text-sm text-slate-500 underline">
         ആരോഗ്യ പ്രവർത്തകർക്ക് · Health worker dashboard

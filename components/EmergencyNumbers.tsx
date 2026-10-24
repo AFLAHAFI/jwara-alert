@@ -6,13 +6,13 @@ export default function EmergencyNumbers() {
         <span className="label-en">Emergency help</span>
       </h2>
       <div className="mt-3 grid grid-cols-2 gap-3">
-        <a href="tel:108" className="btn-danger text-2xl">
-          108
-          <span className="ml-2 text-sm font-normal">ആംബുലൻസ്</span>
+        <a href="tel:108" className="btn-danger flex-col gap-0 px-2 py-2 leading-tight">
+          <span className="text-3xl">108</span>
+          <span className="text-sm font-normal">ആംബുലൻസ് · Ambulance</span>
         </a>
-        <a href="tel:112" className="btn-danger text-2xl">
-          112
-          <span className="ml-2 text-sm font-normal">അടിയന്തരം</span>
+        <a href="tel:112" className="btn-danger flex-col gap-0 px-2 py-2 leading-tight">
+          <span className="text-3xl">112</span>
+          <span className="text-sm font-normal">അടിയന്തരം · Emergency</span>
         </a>
       </div>
     </section>
