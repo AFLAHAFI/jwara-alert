@@ -58,9 +58,9 @@ flowchart LR
 | Role | What they can do |
 | --- | --- |
 | **Resident** | Sign up with district → panchayat → named ward (e.g. *Ward 3 · Parakkode*). Report one of 15 illnesses: **one report per 10 minutes per phone and per account**. See alerts only for their own area, the latest alert on their home screen, and anonymous counts for their ward and panchayat. Share an alert on **WhatsApp**. |
-| **Health officer** (per panchayat) | Self-register, then wait for state approval. Dashboard with red wards (each showing whether an alert was already sent), a **ward heat map** (green / amber / red; tap a ward for its illnesses) with an illness filter, and a **7-day trend** per illness marked rising or falling. Create alerts for the whole panchayat or selected wards in up to 3 languages, from fixed templates with illness-specific advice. Draft, edit, publish (with confirmation) or discard. Create and switch off ASHA accounts. Assign visits with due dates and track open, overdue and done. |
-| **ASHA worker** | See their own visit list (ward, illness, due date) and tap **"Mark visit done"**. |
-| **State admin** (Kerala Health Dept) | Kerala totals, a **Kerala district map** (tap a district), a district table, district drill-down with "no officer" flags, red wards across the state (alerts not yet sent shown first), officer approval, and switching officers off. |
+| **Health officer** (per panchayat) | Self-register, then wait for state approval. Dashboard with red wards (each showing whether an alert was already sent), a **ward heat map** (green / amber / red; tap a ward for its illnesses) with an illness filter, and a **7-day trend** per illness marked rising or falling. Create alerts for the whole panchayat or selected wards in up to 3 languages, from fixed templates with illness-specific advice. Draft, edit, publish (with confirmation) or discard. Create and switch off ASHA accounts. Assign visits with due dates (one per ward and ASHA, duplicates blocked) and track open, overdue and done, with each **visit report** and totals for homes visited, fever cases and referrals. |
+| **ASHA worker** | See their own visit list (ward, illness, due date). Tap **"Mark visit done"** and fill a short **visit report**: homes visited, people with fever, people referred to the health centre, and a note. |
+| **State admin** (Kerala Health Dept) | Kerala totals (including homes visited and people referred by ASHAs), a **Kerala district map** (tap a district), a district table, district drill-down with "no officer" flags, red wards across the state (alerts not yet sent shown first), officer approval, and switching officers off. |
 | **Visitor** | Quick report by ward (original demo), public alerts, 108 / 112 emergency buttons. |
 
 **Places:** all 14 districts, with 2 real grama panchayats in each (28 in total, for example Kunnathunad and Udayamperoor in Ernakulam). They have their real ward counts (493 wards) and ward names for wards 1–10, taken from the LSGD directory list. Kunnathunad is the demo panchayat.
@@ -87,7 +87,7 @@ Created by `npm run seed:accounts`; every password is the `DEMO_PASSWORD` you se
 2. Tap **Create alert** on Ward 3. The illness and ward are pre-filled with ready text in three languages. Tick Ward 1 as well, then **Save draft**, then **Approve and publish**.
 3. Under the published alert, **Assign ASHA visit** to Ward 3 for `asha_1`, due in 2 days.
 4. **`citizen_1`** (Ward 1) sees the alert and can **share it on WhatsApp**. **`citizen_2`** (Ward 2) sees "No alerts in your area". Switch the language to show English and Hindi.
-5. **`asha_1`** taps **Mark visit done**. The officer's Tasks page now shows it as done.
+5. **`asha_1`** taps **Mark visit done** and reports, for example, 12 homes, 3 with fever, 1 referred, plus a note. The officer's Tasks page shows the visit as done, with these numbers and running totals.
 6. **`admin_kerala`** sees the Kerala map with Ernakulam (EKM) in red. Tap it to open the district, where Ward 3 now shows "Alert sent".
 
 ## Tech
@@ -113,7 +113,8 @@ npm run dev                     # http://localhost:3000
 3. `supabase/migrations/002_phase_bc.sql`: targeted alerts, ASHA tasks, switch-off flag
 4. `supabase/migrations/003_i18n_admin.sql`: Hindi names, alert languages, saved language per account
 5. `supabase/migrations/004_real_places.sql`: real panchayat names (renamed in place), ward counts and names, per-account report limit
-6. Optional fake data: `supabase/demo/phase_bc_demo_reports.sql`, `npm run seed`, `npm run seed:accounts`
+6. `supabase/migrations/005_visit_report.sql`: ASHA visit report columns and one visit per alert + ward + ASHA
+7. Optional fake data: `supabase/demo/phase_bc_demo_reports.sql`, `npm run seed`, `npm run seed:accounts`
 
 ### Environment variables (all server-only; none start with `NEXT_PUBLIC_`)
 

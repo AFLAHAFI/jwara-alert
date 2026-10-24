@@ -13,6 +13,7 @@ function NumberField({ label, value, onChange }: { label: string; value: string;
       <span className="label text-sm">{label}</span>
       <input
         className="field text-center text-xl tabular-nums"
+        aria-label={label}
         type="number"
         inputMode="numeric"
         min={0}
