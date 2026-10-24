@@ -60,7 +60,23 @@ export async function POST(req: Request) {
       })
       .select("id, status, created_at, lat, lng")
       .single();
-    if (error) throw error;
+    if (error) {
+      // Two taps at the same moment: the unique index (one active SOS per user) stops the second.
+      // Return the SOS that is already active instead of an error.
+      if (error.code === "23505") {
+        const { data: active, error: aErr } = await db
+          .from("sos_requests")
+          .select("id, status, created_at, lat, lng")
+          .eq("user_id", g.user.id)
+          .in("status", ["open", "accepted"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (aErr) throw aErr;
+        if (active) return NextResponse.json({ ok: true, sos: active, existing: true }, { status: 200 });
+      }
+      throw error;
+    }
 
     return NextResponse.json({ ok: true, sos: data }, { status: 201 });
   } catch (err) {
