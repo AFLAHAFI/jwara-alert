@@ -1,5 +1,11 @@
 # Changelog
 
+## Step 3 — alerts and tasks
+- `/alerts` (public): published alerts newest first; with the admin PIN unlocked, drafts appear on top with an editor
+- `PATCH /api/alerts/:id` edits a draft; `POST /api/alerts/:id/publish` approves it (optionally with final text)
+- Publishing is guarded by `status = 'draft'` and creates exactly one task: "Visit Ward N houses"
+- `/tasks` (admin PIN): checkbox list, open tasks first; `GET /api/tasks`, `PATCH /api/tasks/:id`
+
 ## Step 2 — dashboard, red logic, seed
 - `/dashboard` behind a PIN gate; PIN verified on the server (`x-admin-pin` header, `lib/adminAuth.ts`)
 - `lib/redLogic.ts`: `RED_THRESHOLD = 5`, `WINDOW_DAYS = 3`
