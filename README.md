@@ -36,6 +36,7 @@ npm run dev                  # http://localhost:3000
 | `SUPABASE_URL` | server only | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | server only | service-role key, used in `app/api/*` only |
 | `ADMIN_PIN` | server only | PIN for `/dashboard`, `/tasks`, create/publish APIs |
+| `REPORT_COOKIE_SECRET` | server only, optional | signs the report-cooldown cookie (defaults to the service-role key) |
 
 None of these are prefixed `NEXT_PUBLIC_`, so nothing reaches the browser.
 
@@ -62,4 +63,6 @@ The app was built with Devin (Cognition AI) from a written spec. See `AI_USAGE.m
 ## Privacy
 
 Tables hold only `ward` and timestamps. The 10-minute report cooldown uses the phone's
-localStorage plus an httpOnly cookie that contains only a timestamp. Nothing identifying is stored.
+localStorage plus an httpOnly cookie that contains only an HMAC-signed timestamp (signed with
+`REPORT_COOKIE_SECRET`, falling back to the service-role key). Nothing identifying is stored.
+Clearing cookies resets the cooldown; that is an accepted limit of a no-personal-data design.

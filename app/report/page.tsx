@@ -15,19 +15,45 @@ function readLastReport(): number | null {
   }
 }
 
+function writeLastReport(ts: number) {
+  try {
+    localStorage.setItem(REPORT_STORAGE_KEY, String(ts));
+  } catch (err) {
+    console.warn("localStorage unavailable", err);
+  }
+}
+
 export default function ReportPage() {
   const [ward, setWard] = useState<number | "">("");
   const [status, setStatus] = useState<Status>("idle");
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [waitMin, setWaitMin] = useState(0);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     const last = readLastReport();
     if (last && Date.now() - last < REPORT_COOLDOWN_MS) {
+      setCooldownUntil(last + REPORT_COOLDOWN_MS);
       setStatus("cooldown");
-      setWaitMin(Math.ceil((REPORT_COOLDOWN_MS - (Date.now() - last)) / 60000));
     }
   }, []);
+
+  // Keep the remaining minutes fresh and unlock the form when the cooldown ends.
+  useEffect(() => {
+    if (cooldownUntil === null) return;
+    const tick = () => {
+      const left = cooldownUntil - Date.now();
+      if (left <= 0) {
+        setCooldownUntil(null);
+        setStatus("idle");
+        return;
+      }
+      setWaitMin(Math.max(1, Math.ceil(left / 60000)));
+    };
+    tick();
+    const id = setInterval(tick, 15_000);
+    return () => clearInterval(id);
+  }, [cooldownUntil]);
 
   const busy = status === "sending" || status === "done" || status === "cooldown";
 
@@ -46,14 +72,14 @@ export default function ReportPage() {
         retryAfterMs?: number;
       };
       if (res.status === 429) {
-        const ms = data.retryAfterMs ?? REPORT_COOLDOWN_MS;
-        localStorage.setItem(REPORT_STORAGE_KEY, String(Date.now() - (REPORT_COOLDOWN_MS - ms)));
-        setWaitMin(Math.max(1, Math.ceil(ms / 60000)));
+        const ms = Math.min(data.retryAfterMs ?? REPORT_COOLDOWN_MS, REPORT_COOLDOWN_MS);
+        writeLastReport(Date.now() - (REPORT_COOLDOWN_MS - ms));
+        setCooldownUntil(Date.now() + ms);
         setStatus("cooldown");
         return;
       }
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      localStorage.setItem(REPORT_STORAGE_KEY, String(Date.now()));
+      writeLastReport(Date.now());
       setStatus("done");
     } catch (err) {
       console.error("report failed", err);
