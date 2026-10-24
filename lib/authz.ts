@@ -20,6 +20,11 @@ export type Profile = {
   approved: boolean;
   disabled: boolean;
   lang: string | null;
+  birth_year: number | null;
+  lives_alone: boolean;
+  family_phone: string | null;
+  is_elder: boolean;
+  large_text: boolean;
   created_at: string;
 };
 
@@ -28,7 +33,7 @@ export type ScopedUser = Profile & { panchayat_id: number };
 
 /** Never includes password_hash. */
 export const PROFILE_COLS =
-  "id, username, display_name, role, district_id, panchayat_id, ward_id, designation, approved, disabled, lang, created_at";
+  "id, username, display_name, role, district_id, panchayat_id, ward_id, designation, approved, disabled, lang, birth_year, lives_alone, family_phone, is_elder, large_text, created_at";
 
 /**
  * Current user from the session cookie, or null. Never throws: a missing SESSION_SECRET

@@ -11,6 +11,9 @@ export default function RegisterForm({ mode }: { mode: "citizen" | "officer" }) 
   const [designation, setDesignation] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [livesAlone, setLivesAlone] = useState(false);
+  const [familyPhone, setFamilyPhone] = useState("");
   const [loc, setLoc] = useState<{ panchayatId: number | null; wardId: number | null }>({
     panchayatId: null,
     wardId: null,
@@ -35,7 +38,14 @@ export default function RegisterForm({ mode }: { mode: "citizen" | "officer" }) 
           display_name: displayName,
           username,
           password,
-          ...(isOfficer ? { designation, panchayat_id: loc.panchayatId } : { ward_id: loc.wardId }),
+          ...(isOfficer
+            ? { designation, panchayat_id: loc.panchayatId }
+            : {
+                ward_id: loc.wardId,
+                birth_year: birthYear ? Number(birthYear) : undefined,
+                lives_alone: livesAlone,
+                family_phone: familyPhone || undefined,
+              }),
         }),
       });
       const j = await res.json().catch(() => ({}));
@@ -81,6 +91,58 @@ export default function RegisterForm({ mode }: { mode: "citizen" | "officer" }) 
         level={isOfficer ? "panchayat" : "ward"}
         onChange={(v) => setLoc({ panchayatId: v.panchayatId, wardId: v.wardId })}
       />
+      {!isOfficer && (
+        <>
+          <label className="block">
+            <span className="label">{t.year_of_birth}</span>
+            <input
+              type="number"
+              className="field"
+              value={birthYear}
+              min={1900}
+              max={new Date().getFullYear()}
+              placeholder={t.year_of_birth_hint}
+              onChange={(e) => setBirthYear(e.target.value)}
+            />
+          </label>
+          <fieldset className="space-y-1">
+            <legend className="label">{t.lives_alone_q}</legend>
+            <div className="flex items-center gap-4 pt-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="lives_alone"
+                  checked={livesAlone}
+                  onChange={() => setLivesAlone(true)}
+                  className="h-4 w-4 text-primary focus:ring-primary"
+                />
+                <span>{t.yes}</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="lives_alone"
+                  checked={!livesAlone}
+                  onChange={() => setLivesAlone(false)}
+                  className="h-4 w-4 text-primary focus:ring-primary"
+                />
+                <span>{t.no}</span>
+              </label>
+            </div>
+          </fieldset>
+          <label className="block">
+            <span className="label">{t.family_phone}</span>
+            <input
+              type="tel"
+              className="field"
+              value={familyPhone}
+              maxLength={10}
+              placeholder={t.family_phone_hint}
+              onChange={(e) => setFamilyPhone(e.target.value.replace(/\D/g, ""))}
+            />
+          </label>
+        </>
+      )}
       <label className="block">
         <span className="label">{t.username}</span>
         <input

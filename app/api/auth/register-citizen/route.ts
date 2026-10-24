@@ -51,6 +51,29 @@ export async function POST(req: Request) {
     return apiError("choose_ward_err");
   }
 
+  const currentYear = new Date().getFullYear();
+  let birthYear: number | null = null;
+  if (body.birth_year !== undefined && body.birth_year !== null && body.birth_year !== "") {
+    const by = Number(body.birth_year);
+    if (!Number.isInteger(by) || by < 1900 || by > currentYear) {
+      return apiError("err_birth_year");
+    }
+    birthYear = by;
+  }
+
+  const livesAlone = Boolean(body.lives_alone);
+  let familyPhone: string | null = null;
+  if (typeof body.family_phone === "string" && body.family_phone.trim()) {
+    const cleaned = body.family_phone.trim();
+    if (!/^[0-9]{10}$/.test(cleaned)) {
+      return apiError("err_family_phone");
+    }
+    familyPhone = cleaned;
+  }
+
+  const isElder = birthYear !== null ? currentYear - birthYear >= 60 : false;
+  const largeText = isElder;
+
   try {
     const db = supabaseAdmin();
     const { data: ward, error: wardErr } = await db
@@ -64,7 +87,7 @@ export async function POST(req: Request) {
     const districtId = Array.isArray(panchayat) ? panchayat[0]?.district_id : panchayat?.district_id;
     if (!districtId) return apiError("err_unknown_place");
 
-    const passwordHash = await bcrypt.hash(body.password, 10);
+    const passwordHash = await bcrypt.hash(body.password as string, 10);
     const { data, error } = await db
       .from("profiles")
       .insert({
@@ -77,6 +100,11 @@ export async function POST(req: Request) {
         ward_id: ward.id,
         approved: true,
         lang: getLang(),
+        birth_year: birthYear,
+        lives_alone: livesAlone,
+        family_phone: familyPhone,
+        is_elder: isElder,
+        large_text: largeText,
       })
       .select("id")
       .single();

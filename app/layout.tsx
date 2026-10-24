@@ -54,7 +54,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang={lang} className={`${malayalam.variable} ${devanagari.variable}`}>
-      <body className="min-h-screen font-sans antialiased">
+      <body className={`min-h-screen font-sans antialiased ${user?.large_text ? "text-[20px]" : ""}`}>
         <I18nProvider lang={lang} t={t}>
           <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-white focus:p-2">
             {t.skipToContent}

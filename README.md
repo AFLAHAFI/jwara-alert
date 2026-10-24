@@ -51,15 +51,17 @@ flowchart LR
   A --> R2[Residents in those wards]
   D -->|assign visit| T[ASHA task list]
   DB --> S[State admin<br/>Kerala overview]
+  E[Elder resident] -->|SOS / I am OK| DB
+  DB -->|triage & map link| T
 ```
 
 ## Features by role
 
 | Role | What they can do |
 | --- | --- |
-| **Resident** | Sign up with district → panchayat → named ward (e.g. *Ward 3 · Parakkode*). Report one of 15 illnesses: **one report per 10 minutes per phone and per account**. See alerts only for their own area, the latest alert on their home screen, and anonymous counts for their ward and panchayat. Share an alert on **WhatsApp**. |
-| **Health officer** (per panchayat) | Self-register, then wait for state approval. Dashboard with red wards (each showing whether an alert was already sent), a **ward heat map** (green / amber / red; tap a ward for its illnesses) with an illness filter, and a **7-day trend** per illness marked rising or falling. Create alerts for the whole panchayat or selected wards in up to 3 languages, from fixed templates with illness-specific advice. Draft, edit, publish (with confirmation) or discard. Create and switch off ASHA accounts. Assign visits with due dates (one per ward and ASHA, duplicates blocked) and track open, overdue and done, with each **visit report** and totals for homes visited, fever cases and referrals. |
-| **ASHA worker** | See their own visit list (ward, illness, due date). Tap **"Mark visit done"** and fill a short **visit report**: homes visited, people with fever, people referred to the health centre, and a note. |
+| **Resident (Citizen)** | Sign up with district → panchayat → named ward (e.g. *Ward 3 · Parakkode*). Optional birth year, living alone flag, and family contact phone. Report one of 15 illnesses: **one report per 10 minutes per phone and per account**. See alerts only for their own area, the latest alert on their home screen, and anonymous counts for their ward and panchayat. Share an alert on **WhatsApp**.<br/><br/>**Elder Care (aged 60+):** simplified high-contrast home screen with prominent 108 (Ambulance) and 112 (Emergency) call buttons ("This app does not replace an ambulance. In danger, call 108 first."), a big red **SOS** button (alerts ASHA with browser GPS location link; idempotent within 15 mins), a big green **"I am OK today"** daily check-in button, and a **Large text** toggle that enlarges typography across all pages. *(Note: no real SMS or calls; family members stay informed by logging into the same account).* |
+| **Health officer** (per panchayat) | Self-register, then wait for state approval. Dashboard with red wards (each showing whether an alert was already sent), an **active SOS count card** linking to `/officer/sos`, a **ward heat map** (green / amber / red; tap a ward for its illnesses) with an illness filter, and a **7-day trend** per illness marked rising or falling. Create alerts for the whole panchayat or selected wards in up to 3 languages, from fixed templates with illness-specific advice. Draft, edit, publish (with confirmation) or discard. Create and switch off ASHA accounts. Assign visits with due dates (one per ward and ASHA, duplicates blocked) and track open, overdue and done, with each **visit report** and totals for homes visited, fever cases and referrals. Dedicated **/officer/sos** page to accept and resolve SOS alerts. |
+| **ASHA worker** | See active **SOS alerts** at the top of `/home/asha` with Open / Accepted status, an OpenStreetMap pin link, family phone `tel:` call link, and **Accept** / **Resolved** actions. See visit list (ward, illness, due date) with **"Mark visit done"** and short report. View **"Elders in my panchayat"** list with age, ward, living situation, and today's check-in status (un-checked-in elders who live alone highlighted first in red). Register new senior citizens in her panchayat with the **"Add elder"** form. |
 | **State admin** (Kerala Health Dept) | Kerala totals (including homes visited and people referred by ASHAs), a **Kerala district map** (tap a district), a district table, district drill-down with "no officer" flags, red wards across the state (alerts not yet sent shown first), officer approval, and switching officers off. |
 | **Visitor** | Quick report by ward (original demo), public alerts, 108 / 112 emergency buttons. |
 
@@ -73,22 +75,31 @@ uses 2-column dashboards on laptops, and can be installed with "Add to Home scre
 
 Created by `npm run seed:accounts`; every password is the `DEMO_PASSWORD` you set.
 
-| Username | Role | Where |
-| --- | --- | --- |
-| `admin_kerala` | State admin | Kerala |
-| `officer_demo` | Health officer (approved) | Ernakulam → Kunnathunad |
-| `officer_pending` | Health officer (waiting for approval) | Ernakulam → Kunnathunad |
-| `asha_1`, `asha_2` | ASHA workers | Ernakulam → Kunnathunad |
-| `citizen_1`, `citizen_2` | Residents | Ward 1 (Chittanadu) and Ward 2 (Erumeli), Kunnathunad |
+| Username | Role | Where | Details |
+| --- | --- | --- | --- |
+| `admin_kerala` | State admin | Kerala | Oversees all 14 districts |
+| `officer_demo` | Health officer (approved) | Ernakulam → Kunnathunad | Health Inspector |
+| `officer_pending` | Health officer (waiting) | Ernakulam → Kunnathunad | Junior Health Inspector |
+| `asha_1`, `asha_2` | ASHA workers | Ernakulam → Kunnathunad | Assigned to field visits and elder care |
+| `citizen_1`, `citizen_2` | Residents | Ward 1 (Chittanadu) and Ward 2 (Erumeli) | Standard resident accounts |
+| `elder_1` | Resident (Elder) | Ward 1 (Chittanadu), Kunnathunad | Born 1950, lives alone, family phone `9000000001` |
+| `elder_2` | Resident (Elder) | Ward 3 (Parakkode), Kunnathunad | Born 1956, lives with family |
 
 ### 2-minute demo script
 
-1. **`officer_demo`** opens the Dashboard. Ward 3 · Parakkode (dengue, 6) and Ward 5 · Kaithakkadu South (rat fever, 5) are red and marked "No alert yet". The heat map shows them in red; tap Ward 3 to see its illnesses. The 7-day trend shows dengue **rising**.
+1. **`officer_demo`** opens the Dashboard. Ward 3 · Parakkode (dengue, 6) and Ward 5 · Kaithakkadu South (rat fever, 5) are red and marked "No alert yet". The heat map shows them in red; tap Ward 3 to see its illnesses. The 7-day trend shows dengue **rising**. The Active SOS card shows the current emergency count.
 2. Tap **Create alert** on Ward 3. The illness and ward are pre-filled with ready text in three languages. Tick Ward 1 as well, then **Save draft**, then **Approve and publish**.
 3. Under the published alert, **Assign ASHA visit** to Ward 3 for `asha_1`, due in 2 days.
 4. **`citizen_1`** (Ward 1) sees the alert and can **share it on WhatsApp**. **`citizen_2`** (Ward 2) sees "No alerts in your area". Switch the language to show English and Hindi.
 5. **`asha_1`** taps **Mark visit done** and reports, for example, 12 homes, 3 with fever, 1 referred, plus a note. The officer's Tasks page shows the visit as done, with these numbers and running totals.
-6. **`admin_kerala`** sees the Kerala map with Ernakulam (EKM) in red. Tap it to open the district, where Ward 3 now shows "Alert sent".
+6. **Elder Care Flow:**
+   - **`elder_1`** logs in: sees high-contrast elder home screen with emergency call buttons (108 / 112) and large typography.
+   - **`elder_1`** taps **"I am OK today"** → updates instantly to "Checked in today ✓" with timestamp.
+   - **`elder_1`** taps the big red **SOS** button → confirms prompt → browser captures GPS → displays "SOS sent. Your ASHA has been told. If it is serious, call 108 now." with the 108 shortcut.
+   - **`asha_1`** opens `/home/asha`: sees the active SOS alert at the top with Ward 1, timestamp, OpenStreetMap location pin link, and family phone link.
+   - **`asha_1`** taps **Accept** (status turns to Accepted) and then **Resolved**.
+   - **`asha_1`** checks **"Elders in my panchayat"**: `elder_1` shows "Checked in today", while any alone elder without a check-in is flagged in red at the top.
+7. **`admin_kerala`** sees the Kerala map with Ernakulam (EKM) in red. Tap it to open the district, where Ward 3 now shows "Alert sent".
 
 ## Tech
 
@@ -114,7 +125,8 @@ npm run dev                     # http://localhost:3000
 4. `supabase/migrations/003_i18n_admin.sql`: Hindi names, alert languages, saved language per account
 5. `supabase/migrations/004_real_places.sql`: real panchayat names (renamed in place), ward counts and names, per-account report limit
 6. `supabase/migrations/005_visit_report.sql`: ASHA visit report columns and one visit per alert + ward + ASHA
-7. Optional fake data: `supabase/demo/phase_bc_demo_reports.sql`, `npm run seed`, `npm run seed:accounts`
+7. `supabase/migrations/006_elder_care.sql`: elder care profiles, SOS requests table, daily check-ins table
+8. Optional fake data: `supabase/demo/phase_bc_demo_reports.sql`, `npm run seed`, `npm run seed:accounts`
 
 ### Environment variables (all server-only; none start with `NEXT_PUBLIC_`)
 
@@ -143,6 +155,7 @@ npm run typecheck && npm run lint && npm run check:i18n
 
 - Reports store **ward, illness and time only**: no user id, name or phone number. The per-account limit keeps only the time of the account's last report, and that time is claimed with one conditional update, so two quick taps cannot both count.
 - Every officer and ASHA action is checked **on the server** for role, approval and **own panchayat**. Wards, ASHAs or alerts from another panchayat are rejected.
+- SOS requests and check-ins are strictly validated and scoped to the user's session panchayat and ward. Idempotency guards prevent duplicate SOS records within a 15-minute window.
 - Publishing is guarded so a double tap cannot publish twice. Visits can only be assigned for published alerts.
 - Disabled accounts are treated as logged out. Login and sign-up are rate-limited. Login errors do not reveal whether a username exists.
 - No AI runs inside the app. Alert text comes from fixed templates and **a human approves every alert**.
@@ -150,7 +163,7 @@ npm run typecheck && npm run lint && npm run check:i18n
 ## Limits and future work
 
 - Only 2 panchayats per district are loaded (Kerala has about 941). Wards 11 and above have numbers but no names yet.
-- No automatic SMS or WhatsApp sending. Officers and residents share alerts with the WhatsApp button; otherwise residents see alerts when they open the app.
+- No automatic SMS or WhatsApp sending. Family members monitor elder SOS status by logging into the same resident account.
 - Anyone can sign up as a resident. Limits per phone and per account slow spam but cannot stop many fake accounts.
 - The Kerala map is a schematic tile map, not a geographic boundary map.
 - Rate limits are in memory per server instance.
@@ -158,4 +171,4 @@ npm run typecheck && npm run lint && npm run check:i18n
 ## How AI tools were used
 
 See [`AI_USAGE.md`](AI_USAGE.md). In short: Devin built the first version, Claude built accounts,
-roles, languages and the state view, and the team set every product rule and checked the text.
+roles, languages and the state view, Antigravity built elder care, SOS and daily check-ins, and the team set every product rule and checked the text.

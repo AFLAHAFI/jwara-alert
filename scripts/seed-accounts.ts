@@ -5,7 +5,7 @@
  *   (or put DEMO_PASSWORD in .env.local)
  *
  * Accounts: admin_kerala, officer_demo (approved), officer_pending (waiting),
- * asha_1, asha_2, citizen_1, citizen_2. All share DEMO_PASSWORD. The password is never printed.
+ * asha_1, asha_2, citizen_1, citizen_2, elder_1, elder_2. All share DEMO_PASSWORD. The password is never printed.
  */
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
@@ -45,6 +45,9 @@ async function main() {
     .order("number");
   if (wErr || !wards || wards.length < 2) throw new Error("Wards missing");
 
+  const ward1 = wards.find((w) => w.number === 1)?.id ?? wards[0].id;
+  const ward3 = wards.find((w) => w.number === 3)?.id ?? wards[2]?.id ?? wards[0].id;
+
   const hash = await bcrypt.hash(password!, 10);
   const base = { password_hash: hash };
   const rows = [
@@ -55,6 +58,33 @@ async function main() {
     { username: "asha_2", display_name: "Mini (demo ASHA)", role: "asha", approved: true, district_id: district.id, panchayat_id: panchayat.id },
     { username: "citizen_1", display_name: "Rahul (demo)", role: "citizen", approved: true, district_id: district.id, panchayat_id: panchayat.id, ward_id: wards[0].id },
     { username: "citizen_2", display_name: "Fathima (demo)", role: "citizen", approved: true, district_id: district.id, panchayat_id: panchayat.id, ward_id: wards[1].id },
+    {
+      username: "elder_1",
+      display_name: "Gopalan Nair (demo)",
+      role: "citizen",
+      approved: true,
+      district_id: district.id,
+      panchayat_id: panchayat.id,
+      ward_id: ward1,
+      birth_year: 1950,
+      lives_alone: true,
+      family_phone: "9000000001",
+      is_elder: true,
+      large_text: true,
+    },
+    {
+      username: "elder_2",
+      display_name: "Devaki Amma (demo)",
+      role: "citizen",
+      approved: true,
+      district_id: district.id,
+      panchayat_id: panchayat.id,
+      ward_id: ward3,
+      birth_year: 1956,
+      lives_alone: false,
+      is_elder: true,
+      large_text: true,
+    },
   ].map((r) => ({ ...base, ...r }));
 
   // ignoreDuplicates: existing usernames are left untouched, so re-running is safe.

@@ -30,3 +30,6 @@ overview. Malayalam and Hindi text was written by the AI and should be reviewed 
 Built with Claude (Opus 5.5) from the team's list of real panchayats and ward names: migration, ward heat map, Kerala tile map,
 7-day trend chart, per-account report limit and WhatsApp share. Tested on a Vercel preview in a real browser. Elected members'
 names from the source list were deliberately not stored.
+
+## Elder care (SOS, daily check-in, elders list)
+Built with Antigravity: SQL migration `006_elder_care.sql`, elder citizen profiles (`is_elder`, `lives_alone`, `birth_year`, `family_phone`, `large_text`), high-contrast elder home screen with emergency 108/112 buttons, big red SOS button with idempotent API and geolocation, daily "I am OK" check-in (Asia/Kolkata day), ASHA SOS triage (Accept / Resolve, OpenStreetMap link, Call family) and elders list (alone elders missing check-in flagged in red first), ASHA add elder form, and officer SOS dashboard card + dedicated `/officer/sos` page.

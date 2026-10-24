@@ -1,5 +1,20 @@
 # Changelog
 
+## Elder care (SOS, daily check-in, elders list)
+- High-contrast elder home screen on `/home/citizen` for residents aged 60+ (`is_elder`): big 108/112 call buttons with ambulance disclaimer, huge red SOS button, and green "I am OK today" check-in button
+- Big red SOS button: confirms intent, requests browser geolocation, calls `POST /api/sos` (idempotent within 15 mins), and shows "SOS sent" with 108 shortcut
+- Daily "I am OK" check-in: `POST /api/checkin` (idempotent per Asia/Kolkata day); updates status with time
+- Large text toggle (`POST /api/me/prefs`): sets `profiles.large_text`, applying enlarged font on `<body>` across all pages
+- Resident sign-up: added optional Year of birth, "I live alone" (Yes/No), and Family contact phone; server sets `is_elder = (current_year - birth_year) >= 60` and `large_text = is_elder`
+- ASHA `/home/asha`:
+  - Active SOS alerts at top with Open / Accepted status, OpenStreetMap link, and `tel:` call family link
+  - Actions to Accept and Resolve SOS alerts with conditional updates (`PATCH /api/sos/[id]`)
+  - "Elders in my panchayat" list with age, ward, lives alone, family phone, and today's status (alone elders without check-in highlighted first in red)
+  - "Add elder" form (`POST /api/asha/elders`) to register seniors in her panchayat directly
+- Health officer: Active SOS count card on `/home/officer` and dedicated `/officer/sos` page (added to officer nav); can Accept and Resolve SOS requests in their panchayat
+- Demo accounts: `elder_1` (Ward 1, born 1950, lives alone, family phone 9000000001) and `elder_2` (Ward 3, born 1956, not alone)
+- Migration `supabase/migrations/006_elder_care.sql` (additive and idempotent)
+
 ## ASHA visit report + audit fixes
 - ASHA "Mark visit done" opens a short report: homes visited, people with fever, people referred, note
 - Officer Tasks: per-visit results and totals; Alerts page shows results under each visit; state admin KPIs for homes visited and people referred
