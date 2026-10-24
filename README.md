@@ -81,3 +81,8 @@ Tables hold only `ward` and timestamps. The 10-minute report cooldown uses the p
 localStorage plus an httpOnly cookie that contains only an HMAC-signed timestamp (signed with
 `REPORT_COOKIE_SECRET`, falling back to the service-role key). Nothing identifying is stored.
 Clearing cookies resets the cooldown; that is an accepted limit of a no-personal-data design.
+
+## Accounts (Phase A)
+1. Run `supabase/migrations/001_phase_a.sql` in the Supabase SQL editor (safe to re-run).
+2. Add `SESSION_SECRET` (and `DEMO_PASSWORD` for seeding) to `.env.local`; add `SESSION_SECRET` to Vercel.
+3. `npm run seed:accounts` -> demo logins: `admin_kerala`, `officer_demo`, `officer_pending`, `asha_1`, `asha_2`, `citizen_1`, `citizen_2` (password = `DEMO_PASSWORD`).

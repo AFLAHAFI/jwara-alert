@@ -13,3 +13,6 @@ This project was built for a hackathon with heavy use of AI coding tools. Being 
 - No AI model runs inside the app. Alert text comes from a fixed template in `lib/alertTemplate.ts`,
   so nothing is generated at runtime and every alert is approved by a human before publishing.
 - All data in the app is fake example data created by `scripts/seed.ts`.
+
+## Phase A (accounts, roles, Kerala locations)
+Built with Claude (Sonnet 5.5): SQL migration, auth/session code, role guards, register/login/approval pages. Checked with tsc + lint; all demo names are fake.

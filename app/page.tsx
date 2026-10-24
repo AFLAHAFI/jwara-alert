@@ -29,6 +29,14 @@ export default function Home() {
         ആരോഗ്യ പ്രവർത്തകർക്ക് · Health worker dashboard
       </Link>
 
+      <div className="grid grid-cols-2 gap-2 text-center text-sm">
+        <Link href="/login" className="btn-outline">ലോഗിൻ · Log in</Link>
+        <Link href="/register" className="btn-outline">രജിസ്റ്റർ · Sign up</Link>
+      </div>
+      <Link href="/officer/register" className="block text-center text-sm text-slate-500 underline">
+        പഞ്ചായത്ത് ഉദ്യോഗസ്ഥർക്ക് · Officer sign-up
+      </Link>
+
       <EmergencyNumbers />
     </div>
   );
