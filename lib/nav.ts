@@ -11,6 +11,7 @@ export function navFor(role: Role | null): NavItem[] {
       return [
         { href: "/home/citizen", label: "nav_home", icon: "home" },
         { href: "/report", label: "nav_report", icon: "report" },
+        { href: "/ward", label: "nav_ward", icon: "shield" },
         { href: "/alerts", label: "nav_alerts", icon: "bell" },
       ];
     case "panchayat_officer":
@@ -35,6 +36,7 @@ export function navFor(role: Role | null): NavItem[] {
       return [
         { href: "/", label: "nav_home", icon: "home" },
         { href: "/report", label: "nav_report", icon: "report" },
+        { href: "/ward", label: "nav_ward", icon: "shield" },
         { href: "/alerts", label: "nav_alerts", icon: "bell" },
         { href: "/login", label: "nav_login", icon: "login" },
       ];
