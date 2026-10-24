@@ -18,6 +18,7 @@ export function navFor(role: Role | null): NavItem[] {
         { href: "/home/officer", label: "nav_dashboard", icon: "chart" },
         { href: "/officer/alerts", label: "nav_alerts", icon: "bell" },
         { href: "/officer/tasks", label: "nav_tasks", icon: "tasks" },
+        { href: "/officer/sos", label: "nav_sos", icon: "alert" },
         { href: "/officer/ashas", label: "nav_ashas", icon: "users" },
       ];
     case "asha":

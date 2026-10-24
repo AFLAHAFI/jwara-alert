@@ -23,6 +23,7 @@ import {
 import { countByWardAndDisease, RED_THRESHOLD, WINDOW_DAYS, windowStart, type WardDiseaseCounts } from "@/lib/redLogic";
 import { fmt, pickName, wardLabel } from "@/lib/i18n";
 import { getT } from "@/lib/i18n/server";
+import { countActiveSos } from "@/lib/elder";
 
 export const dynamic = "force-dynamic";
 
@@ -42,19 +43,22 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
   let wardRows: WardRow[] = [];
   let trend: Trend = { days: [], series: [] };
   let failed = false;
+  let sosCount = 0;
   try {
-    const [p, d, wards, reports, a] = await Promise.all([
+    const [p, d, wards, reports, a, sc] = await Promise.all([
       getPanchayat(user.panchayat_id),
       getDiseases(),
       getWards(user.panchayat_id),
       getWindowReports(user.panchayat_id),
       getPanchayatAlerts(user.panchayat_id),
+      countActiveSos(user.panchayat_id),
     ]);
     panchayat = p;
     diseases = d;
     wardRows = wards;
     counts = countByWardAndDisease(wards, reports);
     alerts = a;
+    sosCount = sc;
     trend = await getTrend(user.panchayat_id, d);
   } catch (err) {
     console.error("[home/officer] failed", err);
@@ -128,7 +132,7 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
         </p>
       )}
 
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <div className="card p-4">
           <p className="text-3xl font-bold text-primary tabular-nums">{total}</p>
           <p className="text-sm text-slate-600">{fmt(t.dash_reports, { n: WINDOW_DAYS })}</p>
@@ -137,6 +141,13 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
           <p className={`text-3xl font-bold tabular-nums ${redWardIds.size ? "text-alert" : "text-primary"}`}>{redWardIds.size}</p>
           <p className="text-sm text-slate-600">{t.dash_red_wards}</p>
         </div>
+        <Link href="/officer/sos" className="card p-4 hover:border-alert transition-colors block">
+          <p className={`text-3xl font-bold tabular-nums ${sosCount > 0 ? "text-alert" : "text-primary"}`}>{sosCount}</p>
+          <p className="text-sm text-slate-600 flex items-center justify-between">
+            <span>{t.dash_sos}</span>
+            <Icon name="chevron" className="h-4 w-4" />
+          </p>
+        </Link>
         <div className="card col-span-2 p-4">
           <p className="mb-2 text-sm font-semibold text-slate-600">{t.top_illnesses}</p>
           {top.length === 0 ? (
