@@ -263,6 +263,21 @@ const en = {
   mark_not_done: "Mark as not done",
   done_list: "Done ({n})",
 
+  saved: "Saved.",
+  err_task_duplicate: "This ASHA already has this visit for this ward.",
+  err_visit_numbers: "Enter whole numbers from 0 to 1000. The note can be up to 500 characters.",
+  visit_report_title: "Visit report",
+  visit_homes: "Homes visited",
+  visit_fever: "People with fever",
+  visit_referred: "Referred to health centre",
+  visit_note: "Note (optional)",
+  visit_note_hint: "For example: stagnant water found near the school",
+  save_visit: "Save and mark done",
+  visit_summary: "{homes} homes · {fever} with fever · {referred} referred",
+  visit_totals: "Visit results",
+  kpi_homes: "Homes visited",
+  kpi_referred: "People referred",
+
   // ---- waiting for approval
   waiting_title: "Waiting for approval",
   waiting_body: "The state health department will check your details. You can use the officer tools after approval.",

@@ -50,11 +50,13 @@ export default async function AdminHome() {
         </p>
       ) : (
         <>
-          <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <section className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             <StatCard icon="report" value={data.totals.reports} label={t.kpi_reports} />
             <StatCard icon="alert" value={data.totals.redWards} label={t.kpi_red_wards} tone={data.totals.redWards ? "alert" : "primary"} />
             <StatCard icon="send" value={data.totals.alerts} label={t.kpi_alerts} />
             <StatCard icon="tasks" value={`${data.totals.openVisits} / ${data.totals.openVisits + data.totals.doneVisits}`} label={t.kpi_visits} tone="amber" />
+            <StatCard icon="home" value={data.totals.homesVisited} label={t.kpi_homes} />
+            <StatCard icon="users" value={data.totals.referred} label={t.kpi_referred} tone={data.totals.referred ? "alert" : "primary"} />
           </section>
 
           <div className="grid gap-5 lg:grid-cols-2 lg:items-start">

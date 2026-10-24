@@ -159,7 +159,7 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
             <Icon name="alert" />
             {t.red_wards_title}
           </h2>
-          {redHits.length === 0 ? (
+          {failed ? null : redHits.length === 0 ? (
             <p className="card flex items-center gap-2 text-slate-600">
               <Icon name="check" className="h-5 w-5 text-primary" />
               {t.no_red}

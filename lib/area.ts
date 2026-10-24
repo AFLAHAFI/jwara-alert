@@ -188,6 +188,7 @@ export type TaskRow = {
   done_at: string | null;
   due_date: string | null;
   created_at: string;
+  visit: { homes: number | null; fever: number | null; referred: number | null; note: string | null };
   ward_number: number | null;
   ward_name: string | null;
   asha_name: string | null;
@@ -195,9 +196,13 @@ export type TaskRow = {
 };
 
 const TASK_SELECT =
-  "id, alert_id, assigned_to, title, done, done_at, due_date, created_at, wards(number, name), profiles!tasks_assigned_to_fkey(display_name), alerts(diseases(name_en, name_ml, name_hi))";
+  "id, alert_id, assigned_to, title, done, done_at, due_date, created_at, visit_homes, visit_fever, visit_referred, visit_note, wards(number, name), profiles!tasks_assigned_to_fkey(display_name), alerts(diseases(name_en, name_ml, name_hi))";
 
 type RawTask = {
+  visit_homes: number | null;
+  visit_fever: number | null;
+  visit_referred: number | null;
+  visit_note: string | null;
   id: string;
   alert_id: string;
   assigned_to: string | null;
@@ -221,6 +226,7 @@ function shapeTask(t: RawTask): TaskRow {
     title: t.title,
     done: t.done,
     done_at: t.done_at,
+    visit: { homes: t.visit_homes, fever: t.visit_fever, referred: t.visit_referred, note: t.visit_note },
     due_date: t.due_date,
     created_at: t.created_at,
     ward_number: one(t.wards as { number: number } | null)?.number ?? null,
@@ -318,4 +324,17 @@ export async function getTrend(panchayatId: number, diseases: Disease[], top = 3
     .sort((a, b) => b.counts.reduce((x, y) => x + y, 0) - a.counts.reduce((x, y) => x + y, 0))
     .slice(0, top);
   return { days, series };
+}
+
+/** Sum of ASHA visit results over done tasks. */
+export function visitTotals(tasks: TaskRow[]): { homes: number; fever: number; referred: number; reported: number } {
+  const out = { homes: 0, fever: 0, referred: 0, reported: 0 };
+  for (const t of tasks) {
+    if (!t.done || t.visit.homes === null) continue;
+    out.reported += 1;
+    out.homes += t.visit.homes ?? 0;
+    out.fever += t.visit.fever ?? 0;
+    out.referred += t.visit.referred ?? 0;
+  }
+  return out;
 }

@@ -35,7 +35,7 @@ export type StateOverview = {
   panchayats: PanchayatRow[];
   diseases: DiseaseRow[];
   officers: OfficerRow[];
-  totals: AreaStats & { openVisits: number; doneVisits: number };
+  totals: AreaStats & { openVisits: number; doneVisits: number; homesVisited: number; referred: number };
   byDistrict: Map<number, AreaStats>;
   byPanchayat: Map<number, AreaStats>;
   byDisease: Map<number, number>;
@@ -60,7 +60,7 @@ export async function getStateOverview(): Promise<StateOverview> {
   const since = windowStart();
   const sinceIso = since.toISOString();
 
-  const [districts, panchayats, wards, diseases, officers, reports, alerts, openTasks, doneTasks] = await Promise.all([
+  const [districts, panchayats, wards, diseases, officers, reports, alerts, openTasks, doneTasks, visits] = await Promise.all([
     db.from("districts").select("id, name_en, name_ml, name_hi").order("name_en"),
     db.from("panchayats").select("id, district_id, name_en, name_ml, name_hi").order("name_en"),
     pageAll<{ id: number; panchayat_id: number; number: number; name: string | null }>((a, b) =>
@@ -93,6 +93,15 @@ export async function getStateOverview(): Promise<StateOverview> {
     ),
     db.from("tasks").select("id", { count: "exact", head: true }).not("panchayat_id", "is", null).eq("done", false),
     db.from("tasks").select("id", { count: "exact", head: true }).not("panchayat_id", "is", null).eq("done", true),
+    pageAll<{ visit_homes: number | null; visit_referred: number | null }>((a, b) =>
+      db
+        .from("tasks")
+        .select("visit_homes, visit_referred")
+        .not("panchayat_id", "is", null)
+        .eq("done", true)
+        .order("created_at")
+        .range(a, b),
+    ),
   ]);
   for (const r of [districts, panchayats, diseases, officers, openTasks, doneTasks]) if (r.error) throw r.error;
 
@@ -173,6 +182,8 @@ export async function getStateOverview(): Promise<StateOverview> {
       alerts: alertCount,
       openVisits: openTasks.count ?? 0,
       doneVisits: doneTasks.count ?? 0,
+      homesVisited: visits.reduce((s, v) => s + (v.visit_homes ?? 0), 0),
+      referred: visits.reduce((s, v) => s + (v.visit_referred ?? 0), 0),
     },
     byDistrict,
     byPanchayat,

@@ -30,6 +30,7 @@ export default async function CitizenHome() {
   let wardCount: number | null = null;
   let panchayatCount: number | null = null;
   let place = "";
+  let failed = false;
   try {
     const [alerts, p, ward, wc, pc] = await Promise.all([
       getAlertsForUser(user, 1),
@@ -44,6 +45,7 @@ export default async function CitizenHome() {
     if (p) place = `${wardLabel(t, ward?.number, ward?.name)}, ${pickName(p, lang)}, ${pickName(p.district, lang)}`;
   } catch (err) {
     console.error("[home/citizen] failed", err);
+    failed = true;
   }
 
   return (
@@ -63,7 +65,12 @@ export default async function CitizenHome() {
         {t.cta_report}
       </Link>
 
-      {latest ? (
+      {failed ? (
+        // Never show "no alerts, stay safe" when we could not actually check.
+        <p role="alert" className="err-box">
+          {t.loadError}
+        </p>
+      ) : latest ? (
         <section className="space-y-2">
           <h2 className="section-title">
             <Icon name="bell" className="h-5 w-5 text-alert" />
@@ -82,6 +89,7 @@ export default async function CitizenHome() {
         </p>
       )}
 
+      {!failed && (
       <section className="space-y-2">
         <div className="grid grid-cols-2 gap-3">
           <div className="card p-4 text-center">
@@ -95,6 +103,7 @@ export default async function CitizenHome() {
         </div>
         <p className="text-center text-xs text-slate-500">{fmt(t.counts_note, { n: WINDOW_DAYS })}</p>
       </section>
+      )}
     </div>
   );
 }

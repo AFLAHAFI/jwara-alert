@@ -1,5 +1,11 @@
 # Changelog
 
+## ASHA visit report + audit fixes
+- ASHA "Mark visit done" opens a short report: homes visited, people with fever, people referred, note
+- Officer Tasks: per-visit results and totals; Alerts page shows results under each visit; state admin KPIs for homes visited and people referred
+- Audit fixes: resident home and report page show an error (never a false "no alerts") when loading fails; officer dashboard hides "no red wards" on error; one visit per alert + ward + ASHA (unique index, 409); due date must be a real calendar day; quick-demo save says "Saved"
+- Migration `005_visit_report.sql` (additive only)
+
 ## Real places, maps and trends
 - Migration `004_real_places.sql`: 28 real grama panchayats (2 per district), renamed in place so no data is lost; real ward counts (493 wards) and ward names 1–10
 - Ward names shown everywhere ("Ward 3 · Parakkode")
