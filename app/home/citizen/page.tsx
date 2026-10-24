@@ -1,10 +1,13 @@
 import Link from "next/link";
 import AlertCard from "@/components/AlertCard";
 import Forbidden from "@/components/Forbidden";
+import Icon from "@/components/Icon";
 import { guardPage } from "@/lib/pageAuth";
 import { getAlertsForUser, getPanchayat, getWardNumber, type AreaAlert } from "@/lib/area";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { WINDOW_DAYS, windowStart } from "@/lib/redLogic";
+import { fmt, pickName } from "@/lib/i18n";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +24,12 @@ async function countReports(column: "ward_id" | "panchayat_id", id: number): Pro
 export default async function CitizenHome() {
   const user = await guardPage(["citizen"]);
   if (!user) return <Forbidden />;
+  const { t, lang } = getT();
 
   let latest: AreaAlert | null = null;
   let wardCount: number | null = null;
   let panchayatCount: number | null = null;
-  let place = { ml: "", en: "" };
+  let place = "";
   try {
     const [alerts, p, wardNo, wc, pc] = await Promise.all([
       getAlertsForUser(user, 1),
@@ -37,67 +41,60 @@ export default async function CitizenHome() {
     latest = alerts[0] ?? null;
     wardCount = wc;
     panchayatCount = pc;
-    if (p) {
-      place = {
-        ml: `വാർഡ് ${wardNo}, ${p.name_ml}, ${p.district_ml}`,
-        en: `Ward ${wardNo}, ${p.name_en}, ${p.district_en}`,
-      };
-    }
+    if (p) place = `${fmt(t.wardN, { n: wardNo ?? "" })}, ${pickName(p, lang)}, ${pickName(p.district, lang)}`;
   } catch (err) {
     console.error("[home/citizen] failed", err);
   }
 
   return (
-    <div className="space-y-4">
+    <div className="narrow space-y-5">
       <section className="card">
-        <h1 className="text-xl font-bold">
-          നമസ്കാരം, {user.display_name}
-          <span className="label-en">{place.en}</span>
-        </h1>
-        {place.ml && <p className="mt-1 text-sm text-slate-600">{place.ml}</p>}
+        <h1 className="text-xl font-bold">{fmt(t.hello, { name: user.display_name })}</h1>
+        {place && (
+          <p className="mt-1 flex items-center gap-1 text-slate-600">
+            <Icon name="pin" className="h-4 w-4 shrink-0" />
+            {place}
+          </p>
+        )}
       </section>
+
+      <Link href="/report" className="btn-primary min-h-[64px] text-xl">
+        <Icon name="report" className="h-6 w-6" />
+        {t.cta_report}
+      </Link>
 
       {latest ? (
         <section className="space-y-2">
-          <h2 className="font-bold">
-            പുതിയ അറിയിപ്പ് <span className="label-en inline">Latest alert</span>
+          <h2 className="section-title">
+            <Icon name="bell" className="h-5 w-5 text-alert" />
+            {t.latest_alert}
           </h2>
-          <AlertCard alert={latest} compact />
-          <Link href="/alerts" className="block text-center text-sm underline">
-            എല്ലാ അറിയിപ്പുകളും · All alerts
+          <AlertCard alert={latest} t={t} lang={lang} compact now={Date.now()} />
+          <Link href="/alerts" className="flex items-center justify-center gap-1 text-sm font-semibold text-primary underline">
+            {t.all_alerts}
+            <Icon name="chevron" className="h-4 w-4" />
           </Link>
         </section>
       ) : (
-        <p className="card text-center text-slate-600">
-          നിങ്ങളുടെ പ്രദേശത്ത് ഇപ്പോൾ അറിയിപ്പുകൾ ഇല്ല.
-          <span className="label-en">No alerts in your area right now.</span>
+        <p className="card flex items-center gap-3 text-slate-600">
+          <Icon name="check" className="h-6 w-6 shrink-0 text-primary" />
+          {t.no_alerts_now}
         </p>
       )}
 
-      <section className="grid grid-cols-2 gap-3">
-        <div className="card p-4 text-center">
-          <p className="text-3xl font-bold text-primary">{wardCount ?? "–"}</p>
-          <p className="text-sm">എന്റെ വാർഡ്</p>
-          <p className="label-en">My ward</p>
+      <section className="space-y-2">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="card p-4 text-center">
+            <p className="text-3xl font-bold text-primary">{wardCount ?? "–"}</p>
+            <p className="text-sm text-slate-600">{t.my_ward}</p>
+          </div>
+          <div className="card p-4 text-center">
+            <p className="text-3xl font-bold text-primary">{panchayatCount ?? "–"}</p>
+            <p className="text-sm text-slate-600">{t.panchayat_total}</p>
+          </div>
         </div>
-        <div className="card p-4 text-center">
-          <p className="text-3xl font-bold text-primary">{panchayatCount ?? "–"}</p>
-          <p className="text-sm">പഞ്ചായത്ത്</p>
-          <p className="label-en">Panchayat</p>
-        </div>
-        <p className="col-span-2 -mt-1 text-center text-xs text-slate-500">
-          കഴിഞ്ഞ {WINDOW_DAYS} ദിവസത്തെ റിപ്പോർട്ടുകൾ · Reports in the last {WINDOW_DAYS} days (all residents, anonymous)
-        </p>
+        <p className="text-center text-xs text-slate-500">{fmt(t.counts_note, { n: WINDOW_DAYS })}</p>
       </section>
-
-      <Link href="/report" className="btn-primary flex-col gap-0 py-3 text-center">
-        രോഗം റിപ്പോർട്ട് ചെയ്യുക
-        <span className="text-sm font-normal text-teal-100">Report illness</span>
-      </Link>
-      <Link href="/alerts" className="btn-outline flex-col gap-0 py-3 text-center">
-        അറിയിപ്പുകൾ കാണുക
-        <span className="text-sm font-normal">View alerts</span>
-      </Link>
     </div>
   );
 }

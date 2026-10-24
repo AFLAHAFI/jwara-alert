@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getT } from "@/lib/i18n/server";
 
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -10,14 +11,14 @@ export async function readJson(
     const body = await req.json();
     if (body && typeof body === "object" && !Array.isArray(body)) return { body };
   } catch {}
-  return { error: NextResponse.json({ error: "Invalid request" }, { status: 400 }) };
+  return { error: NextResponse.json({ error: getT().t.err_invalid }, { status: 400 }) };
 }
 
 export function bad(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
-export function fail(where: string, err: unknown, message = "Something went wrong") {
+export function fail(where: string, err: unknown) {
   console.error(`[${where}] failed`, err);
-  return NextResponse.json({ error: message }, { status: 500 });
+  return NextResponse.json({ error: getT().t.genericError }, { status: 500 });
 }

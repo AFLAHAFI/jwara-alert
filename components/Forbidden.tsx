@@ -1,14 +1,15 @@
 import Link from "next/link";
+import Icon from "@/components/Icon";
+import { getT } from "@/lib/i18n/server";
 
 export default function Forbidden() {
+  const { t } = getT();
   return (
-    <div className="card space-y-3 text-center">
-      <h1 className="text-xl font-bold">
-        ഈ പേജ് കാണാൻ അനുമതിയില്ല
-        <span className="label-en">You do not have access to this page.</span>
-      </h1>
+    <div className="narrow card space-y-4 text-center">
+      <Icon name="lock" className="mx-auto h-10 w-10 text-slate-400" />
+      <h1 className="text-xl font-bold">{t.noAccess}</h1>
       <Link href="/home" className="btn-primary">
-        എന്റെ ഹോമിലേക്ക് · Go to my home
+        {t.goHome}
       </Link>
     </div>
   );

@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { requireScoped } from "@/lib/authz";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { bad, fail, readJson } from "@/lib/http";
+import { fail, readJson } from "@/lib/http";
+import { apiError } from "@/lib/i18n/api";
+import { getLang } from "@/lib/i18n/server";
 import { USERNAME_RE, cleanName, isValidName, isValidPassword, normalizeUsername } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -17,9 +19,9 @@ export async function POST(req: Request) {
 
   const displayName = cleanName(r.body.display_name);
   const username = normalizeUsername(r.body.username);
-  if (!isValidName(displayName)) return bad("Enter the ASHA worker's name");
-  if (!USERNAME_RE.test(username)) return bad("Username: 3-30 letters, numbers, dot or underscore");
-  if (!isValidPassword(r.body.password)) return bad("Password must be 6-72 characters");
+  if (!isValidName(displayName)) return apiError("err_name");
+  if (!USERNAME_RE.test(username)) return apiError("err_username");
+  if (!isValidPassword(r.body.password)) return apiError("err_password");
 
   try {
     const hash = await bcrypt.hash(r.body.password, 10);
@@ -31,13 +33,14 @@ export async function POST(req: Request) {
       district_id: g.user.district_id,
       panchayat_id: g.user.panchayat_id,
       approved: true,
+      lang: getLang(),
     });
     if (error) {
-      if (error.code === "23505") return bad("Username is already taken", 409);
+      if (error.code === "23505") return apiError("err_username_taken", 409);
       throw error;
     }
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (err) {
-    return fail("api/officer/ashas", err, "Could not create account");
+    return fail("api/officer/ashas", err);
   }
 }

@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import PinGate, { adminFetch, clearStoredPin } from "@/components/PinGate";
-import WardBarChart from "@/components/WardBarChart";
-import { RED_THRESHOLD, WINDOW_DAYS, type WardCount } from "@/lib/redLogic";
-import { formatKolkata } from "@/lib/time";
+import BarChart from "@/components/BarChart";
+import Icon from "@/components/Icon";
+import { useI18n } from "@/components/I18nProvider";
+import { fmt } from "@/lib/i18n";
+import { RED_THRESHOLD, WINDOW_DAYS, isRedWard, type WardCount } from "@/lib/redLogic";
 
 type Dashboard = {
   since: string;
@@ -15,6 +17,7 @@ type Dashboard = {
 };
 
 function DashboardInner() {
+  const { t } = useI18n();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState<number | null>(null);
@@ -33,9 +36,9 @@ function DashboardInner() {
       setData((await res.json()) as Dashboard);
     } catch (err) {
       console.error("dashboard load failed", err);
-      setError("ഡാറ്റ ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല.");
+      setError(t.loadError);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     load();
@@ -51,11 +54,11 @@ function DashboardInner() {
         body: JSON.stringify({ ward }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setNotice(`വാർഡ് ${ward}-ന് കരട് അറിയിപ്പ് തയ്യാറായി. / Draft alert for Ward ${ward} created.`);
+      setNotice(fmt(t.legacy_draft_created, { n: ward }));
       await load();
     } catch (err) {
       console.error("create alert failed", err);
-      setError("അറിയിപ്പ് ഉണ്ടാക്കാൻ കഴിഞ്ഞില്ല. വീണ്ടും ശ്രമിക്കുക.");
+      setError(t.genericError);
     } finally {
       setCreating(null);
     }
@@ -65,72 +68,59 @@ function DashboardInner() {
     data?.openDrafts.find((a) => a.ward === ward);
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-bold">
-        ഡാഷ്‌ബോർഡ്
-        <span className="label-en">
-          Reports per ward, last {WINDOW_DAYS} days
-          {data && ` (since ${formatKolkata(data.since)} IST)`}
-        </span>
-      </h1>
+    <div className="narrow space-y-5">
+      <div>
+        <h1 className="page-title">{t.legacy_dash_title}</h1>
+        <p className="text-slate-600">{fmt(t.legacy_dash_sub, { n: WINDOW_DAYS })}</p>
+      </div>
 
       {error && (
-        <p role="alert" className="rounded-xl bg-red-50 p-3 text-alert">
+        <div role="alert" className="err-box">
           {error}
-          <span className="label-en">Something went wrong. Please retry.</span>
-          <button className="mt-2 block underline" onClick={load}>
-            വീണ്ടും ശ്രമിക്കുക / Retry
+          <button className="mt-2 block font-semibold underline" onClick={load}>
+            {t.retry}
           </button>
-        </p>
+        </div>
       )}
 
-      {!data && !error && <p className="text-center text-slate-500">ലോഡ് ചെയ്യുന്നു…</p>}
+      {!data && !error && <div className="skeleton h-80" aria-label={t.loading} />}
 
       {data && (
         <>
           <section className="card">
-            <WardBarChart wards={data.wards} />
+            <BarChart
+              rows={data.wards.map((w) => ({ key: w.ward, label: fmt(t.wardN, { n: w.ward }), count: w.count, red: isRedWard(w.count) }))}
+              caption={fmt(t.red_line, { n: RED_THRESHOLD })}
+            />
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-bold">
-              {data.redWards.length > 0 ? (
-                <span className="text-alert">
-                  ചുവപ്പ് വാർഡുകൾ ({data.redWards.length})
-                </span>
-              ) : (
-                <span className="text-primary">ചുവപ്പ് വാർഡുകൾ ഇല്ല</span>
-              )}
-              <span className="label-en">
-                RED = {RED_THRESHOLD}+ reports in {WINDOW_DAYS} days
-                {data.redWards.length === 0 && " — none right now"}
-              </span>
+            <h2 className={`section-title ${data.redWards.length ? "text-alert" : "text-primary"}`}>
+              <Icon name={data.redWards.length ? "alert" : "check"} />
+              {data.redWards.length ? fmt(t.legacy_red_count, { n: data.redWards.length }) : t.legacy_red_none}
             </h2>
-            {notice && <p className="rounded-xl bg-teal-50 p-3 text-primary">{notice}</p>}
+            <p className="text-sm text-slate-500">{fmt(t.legacy_rule, { n: RED_THRESHOLD, d: WINDOW_DAYS })}</p>
+            {notice && (
+              <p role="status" className="ok-box">
+                {notice}
+              </p>
+            )}
             {data.redWards.map((ward) => {
               const count = data.wards.find((w) => w.ward === ward)?.count ?? 0;
               const draft = draftFor(ward);
               return (
-                <div key={ward} className="card border-alert/40">
+                <div key={ward} className="card space-y-3 border-alert/40">
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold text-alert">വാർഡ് {ward}</span>
-                    <span className="rounded-full bg-alert px-3 py-1 text-sm font-semibold text-white">
-                      {count} reports
-                    </span>
+                    <span className="text-xl font-bold text-alert">{fmt(t.wardN, { n: ward })}</span>
+                    <span className="chip bg-alert text-white">{fmt(t.legacy_reports, { n: count })}</span>
                   </div>
                   {draft ? (
-                    <Link href="/alerts" className="btn-outline mt-3 flex-col gap-0 py-2">
-                      കരട് അറിയിപ്പ് തയ്യാറാണ് — കാണുക
-                      <span className="text-sm font-normal">Draft ready — open in Alerts</span>
+                    <Link href="/alerts" className="btn-outline btn-sm">
+                      {t.legacy_draft_ready}
                     </Link>
                   ) : (
-                    <button
-                      className="btn-danger mt-3 flex-col gap-0 py-2"
-                      disabled={creating !== null}
-                      onClick={() => createAlert(ward)}
-                    >
-                      {creating === ward ? "തയ്യാറാക്കുന്നു…" : "അറിയിപ്പ് ഉണ്ടാക്കുക"}
-                      <span className="text-sm font-normal text-red-100">Create alert</span>
+                    <button className="btn-danger btn-sm" disabled={creating !== null} onClick={() => createAlert(ward)}>
+                      {creating === ward ? t.creating : t.create_alert}
                     </button>
                   )}
                 </div>
@@ -138,12 +128,13 @@ function DashboardInner() {
             })}
           </section>
 
-          <p className="text-center text-sm text-slate-500">
-            മാതൃകാ ഡാറ്റ · Example data only ·{" "}
+          <p className="flex justify-center gap-3 text-sm text-slate-500">
             <Link href="/tasks" className="underline">
-              Tasks
-            </Link>{" "}
-            ·{" "}
+              {t.nav_tasks}
+            </Link>
+            <Link href="/alerts" className="underline">
+              {t.nav_alerts}
+            </Link>
             <button
               className="underline"
               onClick={() => {
@@ -151,7 +142,7 @@ function DashboardInner() {
                 location.reload();
               }}
             >
-              Lock
+              {t.pin_lock}
             </button>
           </p>
         </>

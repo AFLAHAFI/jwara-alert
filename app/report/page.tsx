@@ -3,10 +3,13 @@ import EmergencyNumbers from "@/components/EmergencyNumbers";
 import ReportForm from "@/components/ReportForm";
 import { getCurrentUser } from "@/lib/authz";
 import { getDiseases, getPanchayat, getWardNumber } from "@/lib/area";
+import { fmt, pickName } from "@/lib/i18n";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReportPage() {
+  const { t, lang } = getT();
   const user = await getCurrentUser();
   let citizen: Parameters<typeof ReportForm>[0]["citizen"];
   if (user?.role === "citizen" && user.ward_id && user.panchayat_id) {
@@ -17,9 +20,8 @@ export default async function ReportPage() {
         getWardNumber(user.ward_id),
       ]);
       citizen = {
-        diseases,
-        wardLabel: `Ward ${wardNo}, ${panchayat?.name_en ?? ""}`,
-        wardLabelMl: `വാർഡ് ${wardNo}, ${panchayat?.name_ml ?? ""}`,
+        diseases: diseases.map((d) => ({ id: d.id, slug: d.slug, name: pickName(d, lang) })),
+        place: `${fmt(t.wardN, { n: wardNo ?? "" })}, ${pickName(panchayat, lang)}`,
       };
     } catch (err) {
       console.error("[report page] citizen info failed", err);
@@ -27,18 +29,14 @@ export default async function ReportPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-bold">
-        {citizen ? "രോഗം റിപ്പോർട്ട് ചെയ്യുക" : "പനി റിപ്പോർട്ട് ചെയ്യുക"}
-        <span className="label-en">
-          {citizen ? "Report illness in your house" : "Report fever in your house"}
-        </span>
-      </h1>
+    <div className="narrow space-y-5">
+      <h1 className="page-title">{citizen ? t.report_title : t.report_title_anon}</h1>
       <ReportForm citizen={citizen} />
       {!user && (
         <p className="text-center text-sm text-slate-600">
-          <Link href="/login" className="underline">ലോഗിൻ ചെയ്‌താൽ രോഗം തിരഞ്ഞെടുക്കാം</Link>
-          <span className="label-en">Log in to report a specific illness for your ward.</span>
+          <Link href="/login" className="underline">
+            {t.login_to_pick_illness}
+          </Link>
         </p>
       )}
       <EmergencyNumbers />

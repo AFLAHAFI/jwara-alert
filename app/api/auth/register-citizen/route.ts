@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/i18n/api";
 import bcrypt from "bcryptjs";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createLimiter } from "@/lib/rateLimit";
+import { getLang } from "@/lib/i18n/server";
 import { clientIp } from "@/lib/clientIp";
 import { SESSION_COOKIE, SESSION_MAX_AGE_S, encodeSession, sessionCookieOptions } from "@/lib/session";
 import {
@@ -21,35 +23,32 @@ const limiter = createLimiter(15, 60 * 60 * 1000);
 /** Citizen sign-up. District and panchayat are derived from the ward on the server. */
 export async function POST(req: Request) {
   if (!limiter.hit(clientIp(req))) {
-    return NextResponse.json({ error: "Too many sign-ups. Try again later." }, { status: 429 });
+    return apiError("err_too_many_signup", 429);
   }
 
   let body: Record<string, unknown> | null = null;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return apiError("err_invalid");
   }
   if (!body || typeof body !== "object") {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return apiError("err_invalid");
   }
 
   const displayName = cleanName(body.display_name);
   const username = normalizeUsername(body.username);
   if (!isValidName(displayName)) {
-    return NextResponse.json({ error: "Please enter your name" }, { status: 400 });
+    return apiError("err_name");
   }
   if (!USERNAME_RE.test(username)) {
-    return NextResponse.json(
-      { error: "Username: 3-30 letters, numbers, dot or underscore" },
-      { status: 400 },
-    );
+    return apiError("err_username");
   }
   if (!isValidPassword(body.password)) {
-    return NextResponse.json({ error: "Password must be 6-72 characters" }, { status: 400 });
+    return apiError("err_password");
   }
   if (!isId(body.ward_id)) {
-    return NextResponse.json({ error: "Please choose district, panchayat and ward" }, { status: 400 });
+    return apiError("choose_ward_err");
   }
 
   try {
@@ -60,10 +59,10 @@ export async function POST(req: Request) {
       .eq("id", body.ward_id)
       .maybeSingle();
     if (wardErr) throw wardErr;
-    if (!ward) return NextResponse.json({ error: "Unknown ward" }, { status: 400 });
+    if (!ward) return apiError("err_unknown_place");
     const panchayat = ward.panchayats as unknown as { district_id: number } | { district_id: number }[] | null;
     const districtId = Array.isArray(panchayat) ? panchayat[0]?.district_id : panchayat?.district_id;
-    if (!districtId) return NextResponse.json({ error: "Unknown ward" }, { status: 400 });
+    if (!districtId) return apiError("err_unknown_place");
 
     const passwordHash = await bcrypt.hash(body.password, 10);
     const { data, error } = await db
@@ -77,12 +76,13 @@ export async function POST(req: Request) {
         panchayat_id: ward.panchayat_id,
         ward_id: ward.id,
         approved: true,
+        lang: getLang(),
       })
       .select("id")
       .single();
     if (error) {
       if (error.code === "23505") {
-        return NextResponse.json({ error: "Username is already taken" }, { status: 409 });
+        return apiError("err_username_taken", 409);
       }
       throw error;
     }
@@ -95,6 +95,6 @@ export async function POST(req: Request) {
     return res;
   } catch (err) {
     console.error("[api/auth/register-citizen] failed", err);
-    return NextResponse.json({ error: "Could not create account" }, { status: 500 });
+    return apiError("genericError", 500);
   }
 }

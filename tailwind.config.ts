@@ -14,7 +14,7 @@ const config: Config = {
         ink: "#0F172A",
       },
       fontFamily: {
-        sans: ["var(--font-malayalam)", "system-ui", "sans-serif"],
+        sans: ["var(--font-malayalam)", "var(--font-devanagari)", "system-ui", "sans-serif"],
       },
       minHeight: { btn: "56px" },
     },

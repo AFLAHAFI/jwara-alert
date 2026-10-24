@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/components/I18nProvider";
+import { pickName } from "@/lib/i18n";
 
-type District = { id: number; name_en: string; name_ml: string };
-type Panchayat = { id: number; district_id: number; name_en: string; name_ml: string };
+type Named = { name_en: string; name_ml: string; name_hi: string | null };
+type District = Named & { id: number };
+type Panchayat = Named & { id: number; district_id: number };
 type Ward = { id: number; panchayat_id: number; number: number };
 
 type Props = {
@@ -13,6 +16,7 @@ type Props = {
 };
 
 export default function LocationPicker({ level, onChange }: Props) {
+  const { t, lang } = useI18n();
   const [districts, setDistricts] = useState<District[]>([]);
   const [panchayats, setPanchayats] = useState<Panchayat[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
@@ -38,6 +42,10 @@ export default function LocationPicker({ level, onChange }: Props) {
     };
   }, []);
 
+  const dList = useMemo(
+    () => [...districts].sort((a, b) => pickName(a, lang).localeCompare(pickName(b, lang))),
+    [districts, lang],
+  );
   const pList = useMemo(() => panchayats.filter((x) => String(x.district_id) === d), [panchayats, d]);
   const wList = useMemo(() => wards.filter((x) => String(x.panchayat_id) === p), [wards, p]);
 
@@ -49,20 +57,15 @@ export default function LocationPicker({ level, onChange }: Props) {
     });
   }
 
-  if (state === "loading") return <p className="text-slate-500">ലോഡ് ചെയ്യുന്നു… Loading…</p>;
-  if (state === "error")
-    return (
-      <p className="text-red-700">
-        സ്ഥലങ്ങൾ ലോഡ് ചെയ്യാനായില്ല. Could not load places. Reload the page.
-      </p>
-    );
+  if (state === "loading") return <div className="skeleton h-40" aria-label={t.loading} />;
+  if (state === "error") return <p className="err-box">{t.places_load_err}</p>;
 
   return (
     <div className="space-y-3">
       <label className="block">
-        <span className="font-semibold">ജില്ല <span className="label-en inline">District</span></span>
+        <span className="label">{t.district}</span>
         <select
-          className="field mt-1"
+          className="field"
           value={d}
           onChange={(e) => {
             setD(e.target.value);
@@ -71,18 +74,18 @@ export default function LocationPicker({ level, onChange }: Props) {
             emit(e.target.value, "", "");
           }}
         >
-          <option value="">— തിരഞ്ഞെടുക്കുക / Select —</option>
-          {districts.map((x) => (
+          <option value="">— {t.select} —</option>
+          {dList.map((x) => (
             <option key={x.id} value={x.id}>
-              {x.name_ml} · {x.name_en}
+              {pickName(x, lang)}
             </option>
           ))}
         </select>
       </label>
       <label className="block">
-        <span className="font-semibold">പഞ്ചായത്ത് <span className="label-en inline">Panchayat</span></span>
+        <span className="label">{t.panchayat}</span>
         <select
-          className="field mt-1"
+          className="field"
           value={p}
           disabled={!d}
           onChange={(e) => {
@@ -91,19 +94,19 @@ export default function LocationPicker({ level, onChange }: Props) {
             emit(d, e.target.value, "");
           }}
         >
-          <option value="">— തിരഞ്ഞെടുക്കുക / Select —</option>
+          <option value="">— {t.select} —</option>
           {pList.map((x) => (
             <option key={x.id} value={x.id}>
-              {x.name_ml} · {x.name_en}
+              {pickName(x, lang)}
             </option>
           ))}
         </select>
       </label>
       {level === "ward" && (
         <label className="block">
-          <span className="font-semibold">വാർഡ് <span className="label-en inline">Ward</span></span>
+          <span className="label">{t.ward}</span>
           <select
-            className="field mt-1"
+            className="field"
             value={w}
             disabled={!p}
             onChange={(e) => {
@@ -111,10 +114,10 @@ export default function LocationPicker({ level, onChange }: Props) {
               emit(d, p, e.target.value);
             }}
           >
-            <option value="">— തിരഞ്ഞെടുക്കുക / Select —</option>
+            <option value="">— {t.select} —</option>
             {wList.map((x) => (
               <option key={x.id} value={x.id}>
-                വാർഡ് {x.number} · Ward {x.number}
+                {t.wardN.replace("{n}", String(x.number))}
               </option>
             ))}
           </select>

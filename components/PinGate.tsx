@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Icon from "@/components/Icon";
+import { useI18n } from "@/components/I18nProvider";
 
 export const PIN_STORAGE_KEY = "jwara:adminPin";
 export const PIN_HEADER = "x-admin-pin";
@@ -30,6 +32,7 @@ export function adminFetch(input: string, init: RequestInit = {}) {
 type Props = { children: (pin: string) => ReactNode };
 
 export default function PinGate({ children }: Props) {
+  const { t } = useI18n();
   const [pin, setPin] = useState("");
   const [verified, setVerified] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(false);
@@ -61,40 +64,44 @@ export default function PinGate({ children }: Props) {
       } else if (res.status === 401) {
         clearStoredPin();
         setVerified(false);
-        if (candidate) setError("PIN തെറ്റാണ്. വീണ്ടും ശ്രമിക്കുക.");
+        if (candidate) setError(t.pin_wrong);
       } else if (res.status === 429) {
         setVerified(false);
-        setError("കൂടുതൽ ശ്രമങ്ങൾ. 15 മിനിറ്റ് കഴിഞ്ഞ് ശ്രമിക്കുക.");
+        setError(t.pin_locked);
       } else {
         throw new Error(`HTTP ${res.status}`);
       }
     } catch (err) {
       console.error("pin verify failed", err);
       setVerified(false);
-      setError("ക്ഷമിക്കണം, പരിശോധിക്കാൻ കഴിഞ്ഞില്ല.");
+      setError(t.pin_error);
     } finally {
       setChecking(false);
     }
   }
 
   if (verified === null) {
-    return <p className="py-10 text-center text-slate-500">പരിശോധിക്കുന്നു…</p>;
+    return <div className="narrow skeleton h-48" aria-label={t.pin_checking} />;
   }
 
   if (!verified) {
     return (
       <form
-        className="card space-y-4"
+        className="narrow card space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (!checking && pin) verify(pin);
         }}
       >
-        <h1 className="text-xl font-bold">
-          ആരോഗ്യ പ്രവർത്തകർക്ക് മാത്രം
-          <span className="label-en">Health workers only — enter admin PIN</span>
+        <h1 className="section-title text-xl">
+          <Icon name="lock" />
+          {t.pin_title}
         </h1>
+        <label htmlFor="pin" className="label">
+          {t.pin_label}
+        </label>
         <input
+          id="pin"
           className="field text-center text-2xl tracking-[0.5em]"
           type="password"
           inputMode="numeric"
@@ -105,13 +112,12 @@ export default function PinGate({ children }: Props) {
           disabled={checking}
         />
         {error && (
-          <p role="alert" className="rounded-xl bg-red-50 p-3 text-alert">
+          <p role="alert" className="err-box">
             {error}
-            <span className="label-en">Wrong PIN, too many attempts, or could not verify.</span>
           </p>
         )}
         <button type="submit" className="btn-primary" disabled={checking || !pin}>
-          {checking ? "പരിശോധിക്കുന്നു…" : "തുറക്കുക / Open"}
+          {checking ? t.pin_checking : t.pin_open}
         </button>
       </form>
     );

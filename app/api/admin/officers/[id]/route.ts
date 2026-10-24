@@ -1,50 +1,45 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/authz";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { fail, readJson, UUID_RE } from "@/lib/http";
+import { apiError } from "@/lib/i18n/api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /**
- * State admin: approve or reject a PENDING officer. Both are conditional on
- * approved = false, so a double tap or a stale screen cannot undo a decision.
+ * State admin actions on an officer account:
+ * - approve / reject: only while the officer is PENDING (conditional, so a stale screen cannot undo a decision)
+ * - disable / enable: only for APPROVED officers (switch the account off or back on; nothing is deleted)
  */
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const guard = await requireRole(["state_admin"]);
   if (guard.error) return guard.error;
-  if (!UUID.test(params.id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-
-  let body: { action?: unknown } | null = null;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  }
-  const action = body?.action;
-  if (action !== "approve" && action !== "reject") {
-    return NextResponse.json({ error: "action must be approve or reject" }, { status: 400 });
+  if (!UUID_RE.test(params.id)) return apiError("err_invalid");
+  const r = await readJson(req);
+  if (r.error) return r.error;
+  const action = r.body.action;
+  if (action !== "approve" && action !== "reject" && action !== "disable" && action !== "enable") {
+    return apiError("err_invalid");
   }
 
   try {
     const db = supabaseAdmin();
-    const query =
+    const base =
       action === "approve"
         ? db.from("profiles").update({ approved: true })
-        : db.from("profiles").delete();
-    const { data, error } = await query
+        : action === "reject"
+          ? db.from("profiles").delete()
+          : db.from("profiles").update({ disabled: action === "disable" });
+    const { data, error } = await base
       .eq("id", params.id)
       .eq("role", "panchayat_officer")
-      .eq("approved", false)
+      .eq("approved", action === "approve" || action === "reject" ? false : true)
       .select("id");
     if (error) throw error;
-    if (!data || data.length === 0) {
-      return NextResponse.json({ error: "Officer is not pending" }, { status: 409 });
-    }
+    if (!data || data.length === 0) return apiError("err_officer_pending", 409);
     return NextResponse.json({ ok: true, action });
   } catch (err) {
-    console.error("[api/admin/officers/:id] failed", err);
-    return NextResponse.json({ error: "Could not update officer" }, { status: 500 });
+    return fail("api/admin/officers/:id", err);
   }
 }

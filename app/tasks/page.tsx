@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import PinGate, { adminFetch, clearStoredPin } from "@/components/PinGate";
-import { formatKolkata } from "@/lib/time";
+import { useI18n } from "@/components/I18nProvider";
+import { fmt, formatDateTime } from "@/lib/i18n";
 
 type Task = {
   id: string;
@@ -15,6 +16,7 @@ type Task = {
 };
 
 function TasksInner() {
+  const { t, lang } = useI18n();
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<Set<string>>(new Set());
@@ -32,9 +34,9 @@ function TasksInner() {
       setTasks(((await res.json()) as { tasks: Task[] }).tasks);
     } catch (err) {
       console.error("tasks load failed", err);
-      setError("ടാസ്കുകൾ ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല.");
+      setError(t.loadError);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     load();
@@ -45,7 +47,7 @@ function TasksInner() {
     setBusy((b) => new Set(b).add(task.id));
     setError("");
     const next = !task.done;
-    setTasks((ts) => ts?.map((t) => (t.id === task.id ? { ...t, done: next } : t)) ?? null);
+    setTasks((ts) => ts?.map((x) => (x.id === task.id ? { ...x, done: next } : x)) ?? null);
     try {
       const res = await adminFetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
@@ -54,8 +56,8 @@ function TasksInner() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (err) {
       console.error("task update failed", err);
-      setTasks((ts) => ts?.map((t) => (t.id === task.id ? { ...t, done: task.done } : t)) ?? null);
-      setError("മാറ്റം സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.");
+      setTasks((ts) => ts?.map((x) => (x.id === task.id ? { ...x, done: task.done } : x)) ?? null);
+      setError(t.err_save);
     } finally {
       setBusy((b) => {
         const n = new Set(b);
@@ -65,70 +67,54 @@ function TasksInner() {
     }
   }
 
-  const open = tasks?.filter((t) => !t.done) ?? [];
-  const done = tasks?.filter((t) => t.done) ?? [];
+  const open = tasks?.filter((x) => !x.done) ?? [];
+  const done = tasks?.filter((x) => x.done) ?? [];
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-bold">
-        ടാസ്കുകൾ
-        <span className="label-en">
-          Follow-up tasks created when an alert is published
-          {tasks && ` — ${open.length} open, ${done.length} done`}
-        </span>
-      </h1>
+    <div className="narrow space-y-5">
+      <div>
+        <h1 className="page-title">{t.legacy_tasks_title}</h1>
+        {tasks && <p className="text-slate-600">{fmt(t.legacy_tasks_sub, { open: open.length, done: done.length })}</p>}
+      </div>
 
       {error && (
-        <p role="alert" className="rounded-xl bg-red-50 p-3 text-alert">
+        <div role="alert" className="err-box">
           {error}
-          <span className="label-en">Something went wrong. Please retry.</span>
-          <button className="mt-2 block underline" onClick={load}>
-            വീണ്ടും ശ്രമിക്കുക / Retry
+          <button className="mt-2 block font-semibold underline" onClick={load}>
+            {t.retry}
           </button>
-        </p>
+        </div>
       )}
 
-      {!tasks && !error && <p className="text-center text-slate-500">ലോഡ് ചെയ്യുന്നു…</p>}
+      {!tasks && !error && <div className="skeleton h-40" aria-label={t.loading} />}
 
-      {tasks && tasks.length === 0 && (
-        <p className="card text-center text-slate-600">
-          ടാസ്കുകൾ ഒന്നുമില്ല.
-          <span className="label-en">No tasks yet. Publish an alert to create one.</span>
-        </p>
-      )}
+      {tasks && tasks.length === 0 && <p className="card text-center text-slate-600">{t.legacy_no_tasks}</p>}
 
-      {[...open, ...done].map((t) => (
-        <label
-          key={t.id}
-          className={`card flex min-h-btn cursor-pointer items-center gap-4 ${t.done ? "opacity-60" : ""}`}
-        >
+      {[...open, ...done].map((x) => (
+        <label key={x.id} className={`card flex min-h-btn cursor-pointer items-center gap-4 ${x.done ? "opacity-60" : ""}`}>
           <input
             type="checkbox"
             className="h-7 w-7 shrink-0 accent-primary"
-            checked={t.done}
-            disabled={busy.has(t.id)}
-            onChange={() => toggle(t)}
-            aria-label={`Mark "${t.title}" ${t.done ? "not done" : "done"}`}
+            checked={x.done}
+            disabled={busy.has(x.id)}
+            onChange={() => toggle(x)}
+            aria-label={x.done ? t.mark_not_done : t.mark_done}
           />
           <span className="min-w-0 flex-1">
-            <span className={`block text-lg font-semibold ${t.done ? "line-through" : ""}`}>
-              വാർഡ് {t.ward} വീടുകൾ സന്ദർശിക്കുക
+            <span className={`block text-lg font-semibold ${x.done ? "line-through" : ""}`}>
+              {fmt(t.legacy_task_title, { n: x.ward })}
             </span>
-            <span className="label-en">
-              {t.title} · {formatKolkata(t.created_at)} IST
-            </span>
+            <span className="block text-sm text-slate-500">{formatDateTime(x.created_at, lang)}</span>
           </span>
         </label>
       ))}
 
-      <p className="text-center text-sm text-slate-500">
-        മാതൃകാ ഡാറ്റ · Example data only ·{" "}
+      <p className="flex justify-center gap-3 text-sm text-slate-500">
         <Link href="/dashboard" className="underline">
-          Dashboard
-        </Link>{" "}
-        ·{" "}
+          {t.nav_dashboard}
+        </Link>
         <Link href="/alerts" className="underline">
-          Alerts
+          {t.nav_alerts}
         </Link>
       </p>
     </div>
