@@ -1,5 +1,25 @@
 # Changelog
 
+## Public ward status, health centres, final fixes
+- **"Is my ward safe?"** page `/ward` (no login): Safe / Watch / High alert per ward with the dashboard's red rule, illness names only, officer alerts from the last 14 days, tips per illness group (mosquito, water, rat fever, air-borne, scrub typhus, Nipah) in ml / en / hi, WhatsApp share. In the menu for visitors and residents, and as a card on the landing page. Residents see their own ward first.
+- **Hospitals and health centres** per panchayat: officer page `/officer/facilities` (add / two-tap remove, own panchayat only, max 50, one entry per name). The public ward page lists them with Call and Map buttons, a map search for the nearest PHC, DISHA 1056 and 108.
+- **SOS is sent at once**; the location is posted after it (20 s timeout) and added only to an SOS without one. An unanswered location prompt can no longer block the SOS.
+- Large text now raises the root font size, so text, buttons and spacing all grow.
+- The officer SOS card shows "–" instead of a false 0 when the count cannot load.
+- The ASHA elders list loads check-ins only for that panchayat's elders.
+- Language switch falls back to the cookie on any failed request.
+- The check-in text no longer shows a second tick next to the tick icon.
+- Migrations `010_health_facilities.sql` and `011_facility_unique_name.sql` (additive only)
+
+## Small fixes
+- One draft per "New alert" form (`client_ref`, migration `008_alert_client_ref.sql`); a repeat returns the same draft
+- An elder sees "SOS sent" for any open or accepted SOS, not only one from the last 15 minutes
+- Birth year is checked against the India (Asia/Kolkata) year
+- Failed logins are stored per username (migration `009_login_failures.sql`): 10 per 15 minutes on every server, cleared after a correct login
+
+## SOS: one active SOS per person
+- Two parallel taps created two SOS rows. Migration `007_sos_one_active.sql` adds a partial unique index; the API returns the active SOS instead of an error.
+
 ## Elder care (SOS, daily check-in, elders list)
 - High-contrast elder home screen on `/home/citizen` for residents aged 60+ (`is_elder`): big 108/112 call buttons with ambulance disclaimer, huge red SOS button, and green "I am OK today" check-in button
 - Big red SOS button: confirms intent, requests browser geolocation, calls `POST /api/sos` (idempotent within 15 mins), and shows "SOS sent" with 108 shortcut

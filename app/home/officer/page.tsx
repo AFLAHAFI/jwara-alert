@@ -43,7 +43,7 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
   let wardRows: WardRow[] = [];
   let trend: Trend = { days: [], series: [] };
   let failed = false;
-  let sosCount = 0;
+  let sosCount: number | null = 0;
   try {
     const [p, d, wards, reports, a, sc] = await Promise.all([
       getPanchayat(user.panchayat_id),
@@ -142,7 +142,7 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
           <p className="text-sm text-slate-600">{t.dash_red_wards}</p>
         </div>
         <Link href="/officer/sos" className="card p-4 hover:border-alert transition-colors block">
-          <p className={`text-3xl font-bold tabular-nums ${sosCount > 0 ? "text-alert" : "text-primary"}`}>{sosCount}</p>
+          <p className={`text-3xl font-bold tabular-nums ${sosCount ? "text-alert" : "text-primary"}`}>{sosCount ?? "–"}</p>
           <p className="text-sm text-slate-600 flex items-center justify-between">
             <span>{t.dash_sos}</span>
             <Icon name="chevron" className="h-4 w-4" />

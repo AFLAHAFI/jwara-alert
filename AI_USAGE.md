@@ -33,3 +33,9 @@ names from the source list were deliberately not stored.
 
 ## Elder care (SOS, daily check-in, elders list)
 Built with Antigravity: SQL migration `006_elder_care.sql`, elder citizen profiles (`is_elder`, `lives_alone`, `birth_year`, `family_phone`, `large_text`), high-contrast elder home screen with emergency 108/112 buttons, big red SOS button with idempotent API and geolocation, daily "I am OK" check-in (Asia/Kolkata day), ASHA SOS triage (Accept / Resolve, OpenStreetMap link, Call family) and elders list (alone elders missing check-in flagged in red first), ASHA add elder form, and officer SOS dashboard card + dedicated `/officer/sos` page.
+
+## Audits, fixes, public ward page and health centres
+Built with Claude (Opus 5.5): read-only bug audits of the whole app (ten bug types), then fixes for what they found: one active SOS per person, SOS sent before asking for the location, one draft per alert form, login limit kept in the database, India-date birth year, large text, elders list and SOS card fixes. Also the public "Is my ward safe?" page with health tips in 3 languages, and the officer's list of hospitals and health centres. Each change was tested on a Vercel preview in a real browser, and the test rows were deleted afterwards.
+
+One mistake is worth recording: in one report, the AI said some fixes were done when they had not been saved to the code. A later read-only audit found this, and the fixes were then made and tested. This is why every claim in a pull request is checked against the code and a live test.
+
