@@ -104,7 +104,7 @@ export default function ReportPage() {
           <p className="label-en mt-1">
             Thank you. Your report for Ward {ward} was recorded.
           </p>
-          <p className="mt-3 text-sm text-slate-600">
+          <p className="mt-3 text-base text-slate-600">
             വെള്ളം തിളപ്പിച്ച് കുടിക്കുക. പനി 2 ദിവസത്തിൽ കൂടുതൽ നീണ്ടാൽ ഡോക്ടറെ കാണുക.
           </p>
         </section>
@@ -159,7 +159,7 @@ export default function ReportPage() {
             </p>
           )}
 
-          <p className="text-sm text-slate-500">
+          <p className="text-base text-slate-600">
             പേരോ ഫോൺ നമ്പറോ ശേഖരിക്കുന്നില്ല. 10 മിനിറ്റിൽ ഒരു റിപ്പോർട്ട് മാത്രം.
             <span className="label-en">No name or phone collected. One report per 10 minutes.</span>
           </p>
