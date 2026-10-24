@@ -45,7 +45,7 @@ const ml: Dict = {
   // ---- navigation
   nav_home: "ഹോം",
   nav_report: "റിപ്പോർട്ട്",
-  nav_alerts: "അറിയിപ്പുകൾ",
+  nav_alerts: "അറിയിപ്പ്",
   nav_tasks: "ജോലികൾ",
   nav_dashboard: "ഡാഷ്‌ബോർഡ്",
   nav_ashas: "ആശമാർ",

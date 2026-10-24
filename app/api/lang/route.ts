@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/authz";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { LANG_COOKIE, isLang } from "@/lib/i18n";
 import { LANG_COOKIE_OPTIONS } from "@/lib/i18n/server";
+import { apiError } from "@/lib/i18n/api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { lang?: unknown } | null;
   const lang = body?.lang;
-  if (!isLang(lang)) return NextResponse.json({ error: "Invalid language" }, { status: 400 });
+  if (!isLang(lang)) return apiError("err_invalid");
 
   const user = await getCurrentUser();
   if (user) {

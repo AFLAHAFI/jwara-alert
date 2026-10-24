@@ -16,7 +16,7 @@ body {
   color: #0f172a;
   background: #f6faf7;
   -webkit-tap-highlight-color: transparent;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -57,7 +57,7 @@ export default async function AshaHome() {
 
       {open.map((x) => (
         <article key={x.id} className="card space-y-3 border-l-4 border-l-primary">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <p className="text-xl font-bold">{fmt(t.wardN, { n: x.ward_number ?? "" })}</p>
               {x.disease && <p className="text-slate-600">{pickName(x.disease, lang)}</p>}

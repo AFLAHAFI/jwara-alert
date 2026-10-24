@@ -9,7 +9,7 @@ export default function StatCard({ icon, value, label, tone = "primary" }: { ico
       </span>
       <div className="min-w-0">
         <p className="text-2xl font-bold tabular-nums leading-tight">{value}</p>
-        <p className="truncate text-sm text-slate-600">{label}</p>
+        <p className="text-sm leading-snug text-slate-600">{label}</p>
       </div>
     </div>
   );

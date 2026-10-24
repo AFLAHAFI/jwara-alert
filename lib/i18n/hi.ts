@@ -45,7 +45,7 @@ const hi: Dict = {
   // ---- navigation
   nav_home: "होम",
   nav_report: "रिपोर्ट",
-  nav_alerts: "चेतावनियां",
+  nav_alerts: "चेतावनी",
   nav_tasks: "काम",
   nav_dashboard: "डैशबोर्ड",
   nav_ashas: "आशा",

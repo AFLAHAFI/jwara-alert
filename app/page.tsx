@@ -16,12 +16,12 @@ export default async function Home() {
 
   return (
     <div className="space-y-6 md:space-y-8">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-dark p-6 text-white shadow-md md:flex md:items-center md:gap-8 md:p-10">
-        <div className="mb-4 w-fit rounded-2xl bg-white p-2 md:mb-0">
-          <Logo className="h-16 w-16 md:h-24 md:w-24" />
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-dark p-5 text-white shadow-md md:flex md:items-center md:gap-8 md:p-10">
+        <div className="hidden w-fit shrink-0 rounded-2xl bg-white p-2 md:block">
+          <Logo className="h-24 w-24" />
         </div>
         <div className="space-y-3">
-          <h1 className="text-2xl font-bold leading-tight md:text-4xl">{t.home_title}</h1>
+          <h1 className="text-[1.6rem] font-bold leading-tight md:text-4xl">{t.home_title}</h1>
           <p className="text-teal-50 md:text-lg">{t.home_sub}</p>
           <p className="flex items-center gap-1 text-sm text-teal-100">
             <Icon name="lock" className="h-4 w-4" />
