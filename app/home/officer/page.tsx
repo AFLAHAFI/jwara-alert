@@ -171,7 +171,7 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <section className="space-y-3">
           <h2 className="section-title text-alert">
             <Icon name="alert" />

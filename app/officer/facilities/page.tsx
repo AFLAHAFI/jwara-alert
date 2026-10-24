@@ -32,7 +32,7 @@ export default async function OfficerFacilities() {
         <h1 className="page-title">{t.fac_title}</h1>
         <p className="mt-1 text-slate-600">{t.fac_officer_sub}</p>
       </div>
-      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
         <FacilityForm />
         <section className="card space-y-3">
           {failed && (

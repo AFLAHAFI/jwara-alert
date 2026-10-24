@@ -39,7 +39,7 @@ export default function FacilityForm() {
         <span className="label text-sm">{t.fac_name}</span>
         <input className="field" value={name} minLength={2} maxLength={100} required onChange={(e) => setName(e.target.value)} />
       </label>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <label className="block">
           <span className="label text-sm">{t.fac_kind}</span>
           <select className="field" value={kind} onChange={(e) => setKind(e.target.value as FacilityKind)}>

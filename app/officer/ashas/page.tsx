@@ -30,7 +30,7 @@ export default async function OfficerAshas() {
   return (
     <div className="space-y-5">
       <h1 className="page-title">{t.ashas_title}</h1>
-      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
         <NewAshaForm />
         <section className="card space-y-3">
           {failed && (

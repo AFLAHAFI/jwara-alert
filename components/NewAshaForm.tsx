@@ -36,7 +36,7 @@ export default function NewAshaForm() {
         <span className="label text-sm">{t.name}</span>
         <input className="field" value={name} maxLength={60} required onChange={(e) => setName(e.target.value)} />
       </label>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <label className="block">
           <span className="label text-sm">{t.username}</span>
           <input

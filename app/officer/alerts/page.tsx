@@ -72,7 +72,7 @@ export default async function OfficerAlerts({ searchParams }: { searchParams: { 
           {t.loadError}
         </p>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
           <NewAlertForm
             key={`${searchParams.disease ?? ""}-${searchParams.ward ?? ""}`}
             diseases={diseases.map((d) => ({ id: d.id, slug: d.slug, names: names(d) }))}

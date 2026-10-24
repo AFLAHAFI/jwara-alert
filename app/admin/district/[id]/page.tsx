@@ -53,7 +53,7 @@ export default async function DistrictPage({ params }: { params: { id: string } 
         <p className="text-slate-600">{fmt(t.admin_sub, { n: WINDOW_DAYS })}</p>
       </section>
 
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatCard icon="report" value={s.reports} label={t.kpi_reports} />
         <StatCard icon="alert" value={s.redWards} label={t.kpi_red_wards} tone={s.redWards ? "alert" : "primary"} />
         <StatCard icon="send" value={s.alerts} label={t.kpi_alerts} />
@@ -69,7 +69,7 @@ export default async function DistrictPage({ params }: { params: { id: string } 
 
       <section className="card space-y-3 overflow-hidden p-0">
         <h2 className="section-title px-5 pt-5">{t.panchayats_title}</h2>
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[480px] text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>

@@ -27,7 +27,7 @@ export default async function AdminOfficers() {
   return (
     <div className="space-y-5">
       <h1 className="page-title">{t.officers_title}</h1>
-      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
         <section className="card space-y-3">
           <h2 className="section-title">
             <Icon name="clock" />

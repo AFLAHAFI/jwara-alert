@@ -59,7 +59,7 @@ export default async function AdminHome() {
             <StatCard icon="users" value={data.totals.referred} label={t.kpi_referred} tone={data.totals.referred ? "alert" : "primary"} />
           </section>
 
-          <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
             <section className="card space-y-3 lg:row-span-2">
               <h2 className="section-title">
                 <Icon name="pin" />
@@ -100,7 +100,7 @@ export default async function AdminHome() {
               <Icon name="pin" />
               {t.districts_title}
             </h2>
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full min-w-[420px] text-left text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>

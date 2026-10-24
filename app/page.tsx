@@ -30,7 +30,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <Link href={user?.role === "citizen" || !user ? "/report" : ROLE_HOME[user.role]} className="btn-primary min-h-[60px] md:text-xl">
           <Icon name="report" className="h-6 w-6" />
           {user && user.role !== "citizen" ? t.goHome : t.cta_report}
@@ -56,7 +56,7 @@ export default async function Home() {
         <h2 id="how" className="section-title text-xl">
           {t.how_title}
         </h2>
-        <ol className="grid gap-3 md:grid-cols-3">
+        <ol className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {steps.map((s, i) => (
             <li key={s.title} className="card flex gap-4 md:flex-col">
               <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${s.tone}`}>
@@ -74,7 +74,7 @@ export default async function Home() {
       </section>
 
       {!user && (
-        <section className="grid gap-3 md:grid-cols-2">
+        <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Link href="/login" className="btn-ghost">
             <Icon name="login" />
             {t.login}
@@ -89,7 +89,7 @@ export default async function Home() {
         </section>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <EmergencyNumbers />
         <div className="card space-y-2 text-sm text-slate-600">
           <p>{t.install_hint}</p>
