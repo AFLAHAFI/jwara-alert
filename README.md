@@ -24,8 +24,9 @@
   <img src="docs/screenshots/home-ml.jpg" width="200" alt="Home page in Malayalam" />
   <img src="docs/screenshots/resident-home-ml.jpg" width="200" alt="Resident home in Malayalam" />
   <img src="docs/screenshots/officer-red-wards-en.jpg" width="200" alt="Officer dashboard with red wards, in English" />
+  <img src="docs/screenshots/officer-heatmap-hi.jpg" width="200" alt="Ward heat map, in Hindi" />
   <img src="docs/screenshots/officer-alert-hi.jpg" width="200" alt="Creating an alert, in Hindi" />
-  <br /><sub>Home (മലയാളം) · Resident home (മലയാളം) · Officer red wards (English) · New alert (हिन्दी)</sub>
+  <br /><sub>Home (മലയാളം) · Resident home (മലയാളം) · Officer red wards (English) · Ward heat map (हिन्दी) · New alert (हिन्दी)</sub>
 </p>
 
 ---
