@@ -1,9 +1,10 @@
 import Forbidden from "@/components/Forbidden";
 import Icon from "@/components/Icon";
 import TaskBadge, { isOverdue } from "@/components/TaskBadge";
+import VisitSummary from "@/components/VisitSummary";
 import WaitingApproval from "@/components/WaitingApproval";
 import { guardPage } from "@/lib/pageAuth";
-import { getTasks, type TaskRow } from "@/lib/area";
+import { getTasks, visitTotals, type TaskRow } from "@/lib/area";
 import { fmt, formatDateTime, pickName, wardLabel } from "@/lib/i18n";
 import { getT } from "@/lib/i18n/server";
 
@@ -26,6 +27,7 @@ export default async function OfficerTasks() {
   }
   const open = tasks.filter((x) => !x.done).length;
   const overdue = tasks.filter(isOverdue).length;
+  const vt = visitTotals(tasks);
 
   return (
     <div className="space-y-5">
@@ -44,6 +46,28 @@ export default async function OfficerTasks() {
           <p className="text-sm text-slate-600">{t.done}</p>
         </div>
       </section>
+      {vt.reported > 0 && (
+        <section className="card space-y-2 p-4">
+          <h2 className="section-title text-base">
+            <Icon name="users" className="h-4 w-4" />
+            {t.visit_totals}
+          </h2>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-primary">{vt.homes}</p>
+              <p className="text-xs text-slate-600">{t.visit_homes}</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-amber-700">{vt.fever}</p>
+              <p className="text-xs text-slate-600">{t.visit_fever}</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-alert">{vt.referred}</p>
+              <p className="text-xs text-slate-600">{t.visit_referred}</p>
+            </div>
+          </div>
+        </section>
+      )}
       {failed && (
         <p role="alert" className="err-box">
           {t.loadError}
@@ -67,6 +91,7 @@ export default async function OfficerTasks() {
               {x.disease ? ` · ${pickName(x.disease, lang)}` : ""}
             </p>
             {x.done && x.done_at && <p className="text-xs text-slate-500">{fmt(t.doneAt, { date: formatDateTime(x.done_at, lang) })}</p>}
+            <VisitSummary task={x} t={t} />
           </article>
         ))}
       </div>

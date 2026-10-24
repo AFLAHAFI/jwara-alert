@@ -2,6 +2,7 @@ import Forbidden from "@/components/Forbidden";
 import Icon from "@/components/Icon";
 import TaskBadge from "@/components/TaskBadge";
 import TaskDoneButton from "@/components/TaskDoneButton";
+import VisitSummary from "@/components/VisitSummary";
 import { guardPage } from "@/lib/pageAuth";
 import { getPanchayat, getTasks, type TaskRow } from "@/lib/area";
 import { fmt, pickName, wardLabel } from "@/lib/i18n";
@@ -66,7 +67,7 @@ export default async function AshaHome() {
           </div>
           <p className="font-semibold">{x.title}</p>
           <p className="text-sm text-slate-600">{t.visit_instructions}</p>
-          <TaskDoneButton id={x.id} done={false} />
+          <TaskDoneButton id={x.id} done={false} visit={x.visit} />
         </article>
       ))}
 
@@ -82,6 +83,7 @@ export default async function AshaHome() {
                 </p>
                 <TaskBadge task={x} t={t} lang={lang} />
               </div>
+              <VisitSummary task={x} t={t} />
               <TaskDoneButton id={x.id} done />
             </article>
           ))}

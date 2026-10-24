@@ -5,6 +5,7 @@ import Forbidden from "@/components/Forbidden";
 import Icon from "@/components/Icon";
 import NewAlertForm from "@/components/NewAlertForm";
 import TaskBadge from "@/components/TaskBadge";
+import VisitSummary from "@/components/VisitSummary";
 import WaitingApproval from "@/components/WaitingApproval";
 import { guardPage } from "@/lib/pageAuth";
 import {
@@ -122,11 +123,14 @@ export default async function OfficerAlerts({ searchParams }: { searchParams: { 
                         {fmt(t.asha_visits, { n: alertTasks.length })}
                       </p>
                       {alertTasks.map((x) => (
-                        <div key={x.id} className="flex items-center justify-between gap-2 text-sm">
+<div key={x.id} className="space-y-1">
+                        <div className="flex items-center justify-between gap-2 text-sm">
                           <span>
                             {wardLabel(t, x.ward_number, x.ward_name)} · {x.asha_name}
                           </span>
                           <TaskBadge task={x} t={t} lang={lang} />
+                        </div>
+                          <VisitSummary task={x} t={t} />
                         </div>
                       ))}
                       <AssignTaskForm

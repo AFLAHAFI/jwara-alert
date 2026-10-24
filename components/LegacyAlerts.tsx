@@ -140,7 +140,7 @@ function DraftEditor({ alert, onChanged }: { alert: Alert; onChanged: () => Prom
         body: JSON.stringify({ body_ml: text }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setMsg(t.save);
+      setMsg(t.saved);
       await onChanged();
     } catch (e) {
       console.error("save draft failed", e);

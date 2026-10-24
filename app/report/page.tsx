@@ -12,6 +12,7 @@ export default async function ReportPage() {
   const { t, lang } = getT();
   const user = await getCurrentUser();
   let citizen: Parameters<typeof ReportForm>[0]["citizen"];
+  let citizenFailed = false;
   if (user?.role === "citizen" && user.ward_id && user.panchayat_id) {
     try {
       const [diseases, panchayat, ward] = await Promise.all([
@@ -25,13 +26,21 @@ export default async function ReportPage() {
       };
     } catch (err) {
       console.error("[report page] citizen info failed", err);
+      citizenFailed = true;
     }
   }
 
   return (
     <div className="narrow space-y-5">
-      <h1 className="page-title">{citizen ? t.report_title : t.report_title_anon}</h1>
-      <ReportForm citizen={citizen} />
+      <h1 className="page-title">{citizen || citizenFailed ? t.report_title : t.report_title_anon}</h1>
+      {citizenFailed ? (
+        // A logged-in resident must not get the old ward form: the server expects an illness from them.
+        <p role="alert" className="err-box">
+          {t.loadError}
+        </p>
+      ) : (
+        <ReportForm citizen={citizen} />
+      )}
       {!user && (
         <p className="text-center text-sm text-slate-600">
           <Link href="/login" className="underline">

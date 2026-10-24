@@ -265,6 +265,21 @@ const hi: Dict = {
   mark_not_done: "अधूरा चिह्नित करें",
   done_list: "पूरे हुए ({n})",
 
+  saved: "सेव हो गया।",
+  err_task_duplicate: "इस आशा कार्यकर्ता को इस वार्ड का यह दौरा पहले ही सौंपा गया है।",
+  err_visit_numbers: "0 से 1000 तक की पूर्ण संख्या दर्ज करें। नोट 500 अक्षरों तक हो सकता है।",
+  visit_report_title: "दौरा रिपोर्ट",
+  visit_homes: "दौरा किए गए घर",
+  visit_fever: "बुखार वाले लोग",
+  visit_referred: "स्वास्थ्य केंद्र भेजे गए",
+  visit_note: "नोट (वैकल्पिक)",
+  visit_note_hint: "उदाहरण: स्कूल के पास जमा पानी मिला",
+  save_visit: "सेव करें और पूरा करें",
+  visit_summary: "{homes} घर · {fever} बुखार · {referred} भेजे गए",
+  visit_totals: "दौरे के परिणाम",
+  kpi_homes: "दौरा किए गए घर",
+  kpi_referred: "भेजे गए लोग",
+
   // ---- waiting for approval
   waiting_title: "मंजूरी की प्रतीक्षा",
   waiting_body: "राज्य स्वास्थ्य विभाग आपकी जानकारी जांचेगा। मंजूरी के बाद आप अधिकारी सुविधाओं का उपयोग कर सकेंगे।",
