@@ -29,6 +29,10 @@
   <br /><sub>Home (മലയാളം) · Resident home (മലയാളം) · Officer red wards (English) · Ward heat map (हिन्दी) · New alert (हिन्दी)</sub>
 </p>
 
+<p align="center">
+  <b>▶ 30-second promo video:</b> <a href="docs/video/jwara-alert-30s.mp4"><code>docs/video/jwara-alert-30s.mp4</code></a> (1920×1080, English voice and subtitles)
+</p>
+
 ---
 
 ## The problem
@@ -63,7 +67,7 @@ flowchart LR
 | **Health officer** (per panchayat) | Self-register, then wait for state approval. Dashboard with red wards (each showing whether an alert was already sent), an **active SOS count card** linking to `/officer/sos`, a **ward heat map** (green / amber / red; tap a ward for its illnesses) with an illness filter, and a **7-day trend** per illness marked rising or falling. Create alerts for the whole panchayat or selected wards in up to 3 languages, from fixed templates with illness-specific advice. Draft, edit, publish (with confirmation) or discard. Create and switch off ASHA accounts. Assign visits with due dates (one per ward and ASHA, duplicates blocked) and track open, overdue and done, with each **visit report** and totals for homes visited, fever cases and referrals. Dedicated **/officer/sos** page to accept and resolve SOS alerts. **Hospitals and health centres** page (`/officer/facilities`): add PHC, FHC, CHC, taluk, district or private hospitals with phone, address and a 24-hour flag; residents see them on the public ward page. |
 | **ASHA worker** | See active **SOS alerts** at the top of `/home/asha` with Open / Accepted status, an OpenStreetMap pin link, family phone `tel:` call link, and **Accept** / **Resolved** actions. See visit list (ward, illness, due date) with **"Mark visit done"** and short report. View **"Elders in my panchayat"** list with age, ward, living situation, and today's check-in status (un-checked-in elders who live alone highlighted first in red). Register new senior citizens in her panchayat with the **"Add elder"** form. |
 | **State admin** (Kerala Health Dept) | Kerala totals (including homes visited and people referred by ASHAs), a **Kerala district map** (tap a district), a district table, district drill-down with "no officer" flags, red wards across the state (alerts not yet sent shown first), officer approval, and switching officers off. |
-| **Visitor** (no login) | **"Is my ward safe?"** page (`/ward`): pick a ward and see **Safe / Watch / High alert** (illness names only, no counts, no people), recent officer alerts, health tips for that illness in 3 languages, the panchayat's health centres with Call and Map buttons, DISHA 1056 and 108, and a WhatsApp share link. Also quick report by ward (original demo), public alerts, and 108 / 112 emergency buttons. |
+| **Visitor** (no login) | **"Is my ward safe?"** page (`/ward`): pick a ward and see **Safe / Watch / High alert** (illness names only, no counts, no people), recent officer alerts, health tips for that illness in 3 languages, the panchayat's health centres with Call and Map buttons, DISHA 1056 and 108, and a WhatsApp share link. Also **report an illness without an account**: pick district, panchayat, ward and illness. It counts on the dashboards and maps like a resident's report (still anonymous; one per 10 minutes per phone and at most 6 per hour per network). Public alerts, and 108 / 112 emergency buttons. |
 
 **Places:** all 14 districts, with 2 real grama panchayats in each (28 in total, for example Kunnathunad and Udayamperoor in Ernakulam). They have their real ward counts (493 wards) and ward names for wards 1–10, taken from the LSGD directory list. Kunnathunad is the demo panchayat.
 
@@ -132,7 +136,8 @@ npm run dev                     # http://localhost:3000
 10. `supabase/migrations/009_login_failures.sql`: failed logins per username, so the login limit works on every server
 11. `supabase/migrations/010_health_facilities.sql`: hospitals and health centres per panchayat
 12. `supabase/migrations/011_facility_unique_name.sql`: one entry per health centre name in a panchayat
-13. Optional fake data: `supabase/demo/phase_bc_demo_reports.sql`, `npm run seed`, `npm run seed:accounts`
+13. `supabase/migrations/012_report_net_limits.sql`: per-network limit for reports sent without an account (hashed address, never stored with a report)
+14. Optional fake data: `supabase/demo/phase_bc_demo_reports.sql`, `npm run seed`, `npm run seed:accounts`
 
 ### Environment variables (all server-only; none start with `NEXT_PUBLIC_`)
 
