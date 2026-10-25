@@ -151,8 +151,8 @@ export default async function CitizenHome() {
   // -------------------------------------------------------------
   return (
     <div className="narrow space-y-5">
-      <section className="card flex items-center justify-between gap-3">
-        <div>
+      <section className="card flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-xl font-bold">{fmt(t.hello, { name: user.display_name })}</h1>
           {place && (
             <p className="mt-1 flex items-center gap-1 text-slate-600">
