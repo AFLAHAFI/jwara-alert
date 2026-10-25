@@ -148,6 +148,7 @@ const en = {
   wait_minutes: "You can report again in about {n} min.",
   report_fail: "Could not send. Please try again.",
   report_privacy: "No name or phone number is stored with a report. One report every 10 minutes.",
+  report_login_hint: "Have an account? Log in, and your ward is filled in for you.",
   login_to_pick_illness: "Log in to report a specific illness for your ward.",
 
   // ---- alerts

@@ -1,5 +1,10 @@
 # Changelog
 
+## Reports without an account use real places; promo video
+- The logged-out report form now asks for district, panchayat, ward and illness (it used to store only "Ward 1–10", which no dashboard or map could use). The server looks up the panchayat from the ward itself.
+- Network limit for reports without an account: 6 per hour per network, kept in the database as an HMAC of the address (migration `012_report_net_limits.sql`), never stored with a report
+- 30-second promo video in `docs/video/jwara-alert-30s.mp4`
+
 ## Birth year list and security hardening
 - Year of birth is a dropdown (newest first, "Prefer not to say") on sign-up and on the ASHA "Add elder" form
 - New passwords: 8+ characters with letters and numbers; common passwords and passwords containing the username are refused; bcrypt cost 12, older hashes upgraded at login; Show / Hide on every password field

@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Icon from "@/components/Icon";
 import { useI18n } from "@/components/I18nProvider";
-import { fmt } from "@/lib/i18n";
-import { REPORT_COOLDOWN_MS, REPORT_STORAGE_KEY, WARDS } from "@/lib/constants";
+import LocationPicker from "@/components/LocationPicker";
+import { fmt, pickName, wardLabel } from "@/lib/i18n";
+import { REPORT_COOLDOWN_MS, REPORT_STORAGE_KEY } from "@/lib/constants";
 
 type Status = "idle" | "sending" | "done" | "cooldown" | "error";
 
@@ -28,23 +29,25 @@ function writeLastReport(ts: number) {
 type CitizenInfo = {
   /** Already in the reader's language, e.g. "Ward 3 · Parakkode, Kunnathunad" */
   place: string;
-  diseases: { id: number; slug: string; name: string }[];
 };
+type Disease = { id: number; slug: string; name: string };
+type Place = { ward_number: number; ward_name: string | null; panchayat: { name_en?: string; name_ml?: string; name_hi?: string | null } };
 
 /**
- * Visitors pick a ward (original demo). A logged-in resident's ward comes from the account
- * and they pick a suspected illness instead. No name is stored with any report.
+ * Everyone picks a suspected illness. A logged-in resident's ward comes from the account;
+ * anyone else picks district, panchayat and ward. No name is stored with any report.
  */
-export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
-  const { t } = useI18n();
-  const [ward, setWard] = useState<number | "">("");
-  const defaultDisease = citizen?.diseases.find((d) => d.slug === "other-fever") ?? citizen?.diseases[0];
+export default function ReportForm({ citizen, diseases }: { citizen?: CitizenInfo; diseases: Disease[] }) {
+  const { t, lang } = useI18n();
+  const [wardId, setWardId] = useState<number | null>(null);
+  const [donePlace, setDonePlace] = useState("");
+  const defaultDisease = diseases.find((d) => d.slug === "other-fever") ?? diseases[0];
   const [diseaseId, setDiseaseId] = useState<number | "">(defaultDisease?.id ?? "");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [waitMin, setWaitMin] = useState(0);
-  const ready = citizen ? diseaseId !== "" : ward !== "";
+  const ready = diseaseId !== "" && (citizen ? true : wardId !== null);
 
   useEffect(() => {
     const last = readLastReport();
@@ -81,9 +84,9 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(citizen ? { disease_id: diseaseId } : { ward }),
+        body: JSON.stringify(citizen ? { disease_id: diseaseId } : { disease_id: diseaseId, ward_id: wardId }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string; retryAfterMs?: number };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; retryAfterMs?: number; place?: Place | null };
       if (res.status === 429) {
         const ms = Math.min(data.retryAfterMs ?? REPORT_COOLDOWN_MS, REPORT_COOLDOWN_MS);
         writeLastReport(Date.now() - (REPORT_COOLDOWN_MS - ms));
@@ -97,6 +100,10 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
         throw new Error(data.error || `HTTP ${res.status}`);
       }
       writeLastReport(Date.now());
+      if (data.place) {
+        const p = data.place;
+        setDonePlace(`${wardLabel(t, p.ward_number, p.ward_name)}, ${pickName({ name_en: p.panchayat.name_en ?? "", name_ml: p.panchayat.name_ml ?? "", name_hi: p.panchayat.name_hi ?? null }, lang)}`);
+      }
       setStatus("done");
     } catch (err) {
       console.error("report failed", err);
@@ -105,7 +112,7 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
   }
 
   if (status === "done") {
-    const place = citizen ? citizen.place : fmt(t.wardN, { n: ward });
+    const place = citizen ? citizen.place : donePlace;
     return (
       <section className="card space-y-3 border-primary/40 bg-teal-50 text-center" role="status">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white">
@@ -131,52 +138,38 @@ export default function ReportForm({ citizen }: { citizen?: CitizenInfo }) {
   return (
     <section className="card space-y-4">
       {citizen ? (
-        <>
-          <div className="flex items-center gap-3 rounded-xl bg-teal-50 p-3">
-            <Icon name="pin" className="h-6 w-6 shrink-0 text-primary" />
-            <div>
-              <p className="font-semibold">{citizen.place}</p>
-              <p className="text-sm text-slate-500">{t.from_account}</p>
-            </div>
+        <div className="flex items-center gap-3 rounded-xl bg-teal-50 p-3">
+          <Icon name="pin" className="h-6 w-6 shrink-0 text-primary" />
+          <div>
+            <p className="font-semibold">{citizen.place}</p>
+            <p className="text-sm text-slate-500">{t.from_account}</p>
           </div>
-          <label className="block">
-            <span className="label text-lg">{t.suspected_illness}</span>
-            <select
-              className="field"
-              value={diseaseId}
-              disabled={busy}
-              onChange={(e) => setDiseaseId(e.target.value ? Number(e.target.value) : "")}
-            >
-              {citizen.diseases.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </>
+        </div>
       ) : (
-        <label className="block">
-          <span className="label text-lg">{t.select_ward}</span>
-          <select
-            className="field"
-            value={ward}
-            disabled={busy}
-            onChange={(e) => setWard(e.target.value ? Number(e.target.value) : "")}
-          >
-            <option value="">— {t.ward} —</option>
-            {WARDS.map((w) => (
-              <option key={w} value={w}>
-                {fmt(t.wardN, { n: w })}
-              </option>
-            ))}
-          </select>
-        </label>
+        <fieldset className="space-y-1" disabled={busy}>
+          <legend className="label text-lg">{t.select_ward}</legend>
+          <LocationPicker level="ward" onChange={(v) => setWardId(v.wardId)} />
+        </fieldset>
       )}
+      <label className="block">
+        <span className="label text-lg">{t.suspected_illness}</span>
+        <select
+          className="field"
+          value={diseaseId}
+          disabled={busy}
+          onChange={(e) => setDiseaseId(e.target.value ? Number(e.target.value) : "")}
+        >
+          {diseases.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <button type="button" className="btn-primary min-h-[72px] text-xl" disabled={busy || !ready} onClick={submit}>
         <Icon name="report" className="h-7 w-7" />
-        {status === "sending" ? t.sending : citizen ? t.report_btn : t.report_btn_anon}
+        {status === "sending" ? t.sending : t.report_btn}
       </button>
 
       {status === "error" && (
