@@ -1,5 +1,11 @@
 # Changelog
 
+## Birth year list and security hardening
+- Year of birth is a dropdown (newest first, "Prefer not to say") on sign-up and on the ASHA "Add elder" form
+- New passwords: 8+ characters with letters and numbers; common passwords and passwords containing the username are refused; bcrypt cost 12, older hashes upgraded at login; Show / Hide on every password field
+- Security headers (CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS, COOP) and no `X-Powered-By`
+- `middleware.ts`: API writes from another site's page are refused (cross-site request forgery check)
+
 ## Public ward status, health centres, final fixes
 - **"Is my ward safe?"** page `/ward` (no login): Safe / Watch / High alert per ward with the dashboard's red rule, illness names only, officer alerts from the last 14 days, tips per illness group (mosquito, water, rat fever, air-borne, scrub typhus, Nipah) in ml / en / hi, WhatsApp share. In the menu for visitors and residents, and as a card on the landing page. Residents see their own ward first.
 - **Hospitals and health centres** per panchayat: officer page `/officer/facilities` (add / two-tap remove, own panchayat only, max 50, one entry per name). The public ward page lists them with Call and Map buttons, a map search for the nearest PHC, DISHA 1056 and 108.

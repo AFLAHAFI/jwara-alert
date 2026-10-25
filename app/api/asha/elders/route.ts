@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { fail, readJson } from "@/lib/http";
 import { apiError } from "@/lib/i18n/api";
 import { getLang } from "@/lib/i18n/server";
-import { USERNAME_RE, cleanName, isId, isValidName, isValidPassword, normalizeUsername } from "@/lib/validation";
+import { USERNAME_RE, cleanName, isId, isValidName, passwordProblem, BCRYPT_COST, normalizeUsername } from "@/lib/validation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +23,8 @@ export async function POST(req: Request) {
   const username = normalizeUsername(r.body.username);
   if (!isValidName(displayName)) return apiError("err_name");
   if (!USERNAME_RE.test(username)) return apiError("err_username");
-  if (!isValidPassword(r.body.password)) return apiError("err_password");
+  const pwProblem = passwordProblem(r.body.password, username);
+  if (pwProblem) return apiError(pwProblem);
   if (!isId(r.body.ward_id)) return apiError("choose_ward_err");
 
   const currentYear = Number(getKolkataToday().slice(0, 4)); // India date, not server UTC
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     if (wardErr) throw wardErr;
     if (!ward) return apiError("choose_ward_err");
 
-    const hash = await bcrypt.hash(r.body.password as string, 10);
+    const hash = await bcrypt.hash(r.body.password as string, BCRYPT_COST);
     const { error } = await db.from("profiles").insert({
       username,
       password_hash: hash,

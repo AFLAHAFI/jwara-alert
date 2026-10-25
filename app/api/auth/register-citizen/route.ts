@@ -12,7 +12,8 @@ import {
   cleanName,
   isId,
   isValidName,
-  isValidPassword,
+  passwordProblem,
+  BCRYPT_COST,
   normalizeUsername,
 } from "@/lib/validation";
 
@@ -45,9 +46,8 @@ export async function POST(req: Request) {
   if (!USERNAME_RE.test(username)) {
     return apiError("err_username");
   }
-  if (!isValidPassword(body.password)) {
-    return apiError("err_password");
-  }
+  const pwProblem = passwordProblem(body.password, username);
+  if (pwProblem) return apiError(pwProblem);
   if (!isId(body.ward_id)) {
     return apiError("choose_ward_err");
   }
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     const districtId = Array.isArray(panchayat) ? panchayat[0]?.district_id : panchayat?.district_id;
     if (!districtId) return apiError("err_unknown_place");
 
-    const passwordHash = await bcrypt.hash(body.password as string, 10);
+    const passwordHash = await bcrypt.hash(body.password as string, BCRYPT_COST);
     const { data, error } = await db
       .from("profiles")
       .insert({
