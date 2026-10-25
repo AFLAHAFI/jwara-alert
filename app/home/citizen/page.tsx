@@ -76,10 +76,10 @@ export default async function CitizenHome() {
     return (
       <div className="narrow space-y-6">
         <section className="card flex flex-wrap items-center justify-between gap-3 p-5 shadow-md">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black">{fmt(t.hello, { name: user.display_name })}</h1>
-              <span className="chip bg-amber-100 text-amber-900 font-bold">{t.elder_badge}</span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="min-w-0 text-2xl font-black">{fmt(t.hello, { name: user.display_name })}</h1>
+              <span className="chip shrink-0 bg-amber-100 text-amber-900 font-bold">{t.elder_badge}</span>
             </div>
             {place && (
               <p className="mt-1 flex items-center gap-1 text-slate-600 font-semibold">
