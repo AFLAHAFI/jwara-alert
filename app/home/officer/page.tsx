@@ -185,8 +185,8 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
           ) : (
             redHits.map((h) => (
               <div key={`${h.wardId}-${h.disease.id}`} className="card space-y-3 border-alert/40 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-lg font-bold">
                       {wardLabel(t, h.number, nameOf.get(h.wardId))}
                     </p>
