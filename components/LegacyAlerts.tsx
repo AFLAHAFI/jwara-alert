@@ -204,7 +204,7 @@ function DraftEditor({ alert, onChanged }: { alert: Alert; onChanged: () => Prom
         </p>
       )}
       {msg && <p className="ok-box">{msg}</p>}
-      <div className="grid gap-2">
+      <div className="grid grid-cols-1 gap-2">
         <button className="btn-primary" onClick={publish} disabled={busy !== null || !text.trim()}>
           {busy === "publish" ? t.publishing : t.publish}
         </button>

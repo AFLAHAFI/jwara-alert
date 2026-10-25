@@ -79,7 +79,7 @@ export default async function OfficerTasks() {
           <p>{t.no_tasks_officer}</p>
         </div>
       )}
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {tasks.map((x) => (
           <article key={x.id} className={`card space-y-1 p-4 ${x.done ? "opacity-70" : ""}`}>
             <div className="flex items-start justify-between gap-2">

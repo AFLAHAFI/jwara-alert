@@ -43,7 +43,7 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
   let wardRows: WardRow[] = [];
   let trend: Trend = { days: [], series: [] };
   let failed = false;
-  let sosCount = 0;
+  let sosCount: number | null = 0;
   try {
     const [p, d, wards, reports, a, sc] = await Promise.all([
       getPanchayat(user.panchayat_id),
@@ -142,7 +142,7 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
           <p className="text-sm text-slate-600">{t.dash_red_wards}</p>
         </div>
         <Link href="/officer/sos" className="card p-4 hover:border-alert transition-colors block">
-          <p className={`text-3xl font-bold tabular-nums ${sosCount > 0 ? "text-alert" : "text-primary"}`}>{sosCount}</p>
+          <p className={`text-3xl font-bold tabular-nums ${sosCount ? "text-alert" : "text-primary"}`}>{sosCount ?? "–"}</p>
           <p className="text-sm text-slate-600 flex items-center justify-between">
             <span>{t.dash_sos}</span>
             <Icon name="chevron" className="h-4 w-4" />
@@ -171,7 +171,7 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <section className="space-y-3">
           <h2 className="section-title text-alert">
             <Icon name="alert" />
@@ -185,8 +185,8 @@ export default async function OfficerHome({ searchParams }: { searchParams: { di
           ) : (
             redHits.map((h) => (
               <div key={`${h.wardId}-${h.disease.id}`} className="card space-y-3 border-alert/40 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-lg font-bold">
                       {wardLabel(t, h.number, nameOf.get(h.wardId))}
                     </p>

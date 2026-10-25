@@ -15,11 +15,12 @@ export default function LanguageSwitcher() {
     if (next === lang || busy) return;
     setBusy(true);
     try {
-      await fetch("/api/lang", {
+      const res = await fetch("/api/lang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lang: next }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch {
       // Cookie fallback so the switch still works if the request failed.
       document.cookie = `jwara_lang=${next}; path=/; max-age=31536000; samesite=lax`;

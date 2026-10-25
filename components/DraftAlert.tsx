@@ -65,7 +65,7 @@ export default function DraftAlert({ id, title, target, bodies }: Props) {
           </div>
         </div>
       ) : (
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <button type="button" className="btn-primary" disabled={busy || !filled.ml} onClick={() => setConfirming(true)}>
             {t.publish}
           </button>

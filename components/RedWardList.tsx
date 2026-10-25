@@ -14,7 +14,7 @@ export default function RedWardList({ items, data, t, lang }: { items: RedWard[]
   return (
     <ul className="divide-y divide-slate-100">
       {items.map((r) => (
-        <li key={`${r.wardId}-${r.diseaseId}`} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
+        <li key={`${r.wardId}-${r.diseaseId}`} className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 py-3 first:pt-0 last:pb-0">
           <div className="min-w-0">
             <p className="font-semibold">
               {pickName(sById.get(r.diseaseId), lang)} · <span className="tabular-nums">{r.count}</span>
