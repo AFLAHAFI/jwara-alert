@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createLimiter } from "@/lib/rateLimit";
 import { clientIp } from "@/lib/clientIp";
 import { SESSION_COOKIE, SESSION_MAX_AGE_S, encodeSession, sessionCookieOptions } from "@/lib/session";
-import { normalizeUsername } from "@/lib/validation";
+import { BCRYPT_COST, normalizeUsername } from "@/lib/validation";
 import { LANG_COOKIE, isLang } from "@/lib/i18n";
 import { LANG_COOKIE_OPTIONS } from "@/lib/i18n/server";
 
@@ -16,7 +16,7 @@ const limiter = createLimiter(8, 15 * 60 * 1000);
 const DB_WINDOW_MS = 15 * 60 * 1000;
 const DB_MAX_FAILS = 10;
 // Compared against when the username does not exist, so timing does not reveal valid usernames.
-const DUMMY_HASH = "$2b$10$CwTycUXWue0Thq9StjUM0uJ8.Qy4mQ9Qk9nJmZ1b3Zy2k8bZ6cH8W";
+const DUMMY_HASH = "$2b$12$ZH9LvhZscZEw3OCh5ndTueb8N7nW381LioqiYHuVdgt2puJUK836W";
 
 export async function POST(req: Request) {
   let body: { username?: unknown; password?: unknown } | null = null;
@@ -67,6 +67,16 @@ export async function POST(req: Request) {
     }
     limiter.reset(key);
     await db.from("login_failures").delete().eq("username", username);
+    // Older accounts were hashed with a lower cost: upgrade the hash now that we know the password.
+    // Same password, stronger hash. A failure here never blocks the login.
+    try {
+      if (bcrypt.getRounds(data.password_hash) < BCRYPT_COST) {
+        const upgraded = await bcrypt.hash(password, BCRYPT_COST);
+        await db.from("profiles").update({ password_hash: upgraded }).eq("id", data.id).eq("password_hash", data.password_hash);
+      }
+    } catch (e) {
+      console.error("[api/auth/login] hash upgrade skipped", e);
+    }
     const res = NextResponse.json({ ok: true, role: data.role, approved: data.approved });
     res.cookies.set(SESSION_COOKIE, encodeSession(data.id), {
       ...sessionCookieOptions,

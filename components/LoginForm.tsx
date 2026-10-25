@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import PasswordInput from "@/components/PasswordInput";
 import { useI18n } from "@/components/I18nProvider";
 
 export default function LoginForm() {
@@ -51,14 +52,7 @@ export default function LoginForm() {
       </label>
       <label className="block">
         <span className="label">{t.password}</span>
-        <input
-          className="field"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" />
       </label>
       {error && (
         <p role="alert" className="err-box">

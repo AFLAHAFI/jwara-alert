@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Icon from "@/components/Icon";
+import PasswordInput from "@/components/PasswordInput";
 import { useI18n } from "@/components/I18nProvider";
 import { useApi } from "@/components/useApi";
 import { fmt } from "@/lib/i18n";
@@ -52,16 +53,7 @@ export default function NewAshaForm() {
         </label>
         <label className="block">
           <span className="label text-sm">{t.password}</span>
-          <input
-            className="field text-base"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            maxLength={72}
-            minLength={6}
-            required
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <PasswordInput value={password} onChange={setPassword} autoComplete="new-password" minLength={8} className="field text-base" />
         </label>
       </div>
       <p className="hint">{t.username_hint} · {t.password_hint}</p>

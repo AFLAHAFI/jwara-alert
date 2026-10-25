@@ -11,7 +11,8 @@ import {
   cleanName,
   isId,
   isValidName,
-  isValidPassword,
+  passwordProblem,
+  BCRYPT_COST,
   normalizeUsername,
 } from "@/lib/validation";
 
@@ -45,9 +46,8 @@ export async function POST(req: Request) {
   if (!USERNAME_RE.test(username)) {
     return apiError("err_username");
   }
-  if (!isValidPassword(body.password)) {
-    return apiError("err_password");
-  }
+  const pwProblem = passwordProblem(body.password, username);
+  if (pwProblem) return apiError(pwProblem);
   if (!isValidName(designation)) {
     return apiError("err_designation");
   }
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     if (pErr) throw pErr;
     if (!panchayat) return apiError("err_unknown_place");
 
-    const passwordHash = await bcrypt.hash(body.password, 10);
+    const passwordHash = await bcrypt.hash(body.password as string, BCRYPT_COST);
     const { data, error } = await db
       .from("profiles")
       .insert({

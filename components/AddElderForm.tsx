@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import Icon from "@/components/Icon";
+import BirthYearSelect from "@/components/BirthYearSelect";
+import PasswordInput from "@/components/PasswordInput";
 import { useI18n } from "@/components/I18nProvider";
 import { useApi } from "@/components/useApi";
 import { wardLabel } from "@/lib/i18n";
@@ -114,18 +116,7 @@ export default function AddElderForm({
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="block">
-              <span className="label">{t.year_of_birth}</span>
-              <input
-                type="number"
-                className="field"
-                value={birthYear}
-                min={1900}
-                max={new Date().getFullYear()}
-                placeholder={t.year_of_birth_hint}
-                onChange={(e) => setBirthYear(e.target.value)}
-              />
-            </label>
+            <BirthYearSelect value={birthYear} onChange={setBirthYear} />
 
             <fieldset className="space-y-1">
               <legend className="label">{t.lives_alone_q}</legend>
@@ -183,15 +174,8 @@ export default function AddElderForm({
 
             <label className="block">
               <span className="label">{t.password}</span>
-              <input
-                type="password"
-                className="field"
-                value={password}
-                minLength={6}
-                maxLength={72}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <PasswordInput value={password} onChange={setPassword} autoComplete="new-password" minLength={8} />
+              <span className="hint">{t.password_hint}</span>
             </label>
           </div>
 
